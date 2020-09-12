@@ -1,0 +1,9 @@
+{
+    "Id": "SaveGameCustomizer",
+    "DisplayName": "Save Game Customizer",
+    "Author": "Thom",
+    "Version": "1.0.0",
+    "Enable": true,
+    "Game": "Subnautica",
+    "AssemblyName": "SaveGameCustomizer.dll"
+}
