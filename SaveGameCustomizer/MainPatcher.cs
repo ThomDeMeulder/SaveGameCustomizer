@@ -5,6 +5,8 @@ using System;
 using System.IO;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace SaveGameCustomizer
 {
@@ -30,6 +32,36 @@ namespace SaveGameCustomizer
         internal static void Log(string message)
         {
             Console.WriteLine($"SaveGameCustomizer: {message}");
+        }
+
+        internal static void ChangeButtonPosition(Transform button, bool positive)
+        {
+            Vector3 buttonLocalPosition = button.localPosition;
+            buttonLocalPosition.x = 150;
+            buttonLocalPosition.y = 18 * (positive ? 1 : -1);
+            button.localPosition = buttonLocalPosition;
+        }
+
+        internal static void ChangeEvenTriggers(EventTrigger trigger, Color lightColour, Color darkColour)
+        {
+            trigger.triggers.Clear();
+            AddNewTriggers(trigger, lightColour, darkColour);
+        }
+
+        private static void AddNewTriggers(EventTrigger eventTrigger, Color lightColour, Color darkColour)
+        {
+            Image image = eventTrigger.gameObject.transform.parent.GetComponent<Image>();
+
+            eventTrigger.triggers.Add(CreateEntry(image, darkColour, EventTriggerType.PointerEnter));
+            eventTrigger.triggers.Add(CreateEntry(image, lightColour, EventTriggerType.PointerExit));
+        }
+
+        private static EventTrigger.Entry CreateEntry(Image image, Color newImageColour, EventTriggerType triggerType)
+        {
+            EventTrigger.Entry entry = new EventTrigger.Entry();
+            entry.eventID = triggerType;
+            entry.callback.AddListener((data) => image.color = newImageColour);
+            return entry;
         }
     }
 }

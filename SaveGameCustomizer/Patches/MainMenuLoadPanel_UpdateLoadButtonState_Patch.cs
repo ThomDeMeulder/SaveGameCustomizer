@@ -47,7 +47,7 @@ namespace SaveGameCustomizer.Patches
 
             // Change the delete button position
             Transform deleteButtonTransform = lb.load.FindChild("DeleteButton").transform;
-            ChangeButtonPosition(deleteButtonTransform, true);
+            MainPatcher.ChangeButtonPosition(deleteButtonTransform, true);
 
             DateTime time = new DateTime(gameInfo.dateTicks);
             lb.load.FindChild("SaveGameTime").GetComponent<Text>().text = $"{config.Name} - {time.Day} {CultureInfo.GetCultureInfo("en-GB").DateTimeFormat.GetMonthName(time.Month)}";
@@ -63,21 +63,46 @@ namespace SaveGameCustomizer.Patches
             Color lightColour = SaveGameConfig.AllColours[config.ColourIndex].Item1;
             Color darkColour = SaveGameConfig.AllColours[config.ColourIndex].Item2;
 
-            // Add the edit button
-            GameObject editButton = UnityEngine.Object.Instantiate(deleteButtonTransform.gameObject, deleteButtonTransform.parent);
-            editButton.name = "EditButton";
 
-            // Fix scale and position
-            ChangeButtonPosition(editButton.transform, false);
-            const float Scale = 0.8f;
-            editButton.transform.localScale = new Vector3(Scale, Scale, Scale);
+            if (MainMenuLoadPanel_Start_Patch.IsStart)
+            {
+                // Add the edit button
+                GameObject editButton = UnityEngine.Object.Instantiate(deleteButtonTransform.gameObject, deleteButtonTransform.parent);
+                editButton.name = "EditButton";
 
-            // Set the new icon and fix triggers
-            editButton.GetComponent<Image>().sprite = MainPatcher.SettingIcon;
-            ChangeEvenTriggers(editButton.GetComponent<EventTrigger>(), lightColour, darkColour);
+                // Fix scale and position
+                MainPatcher.ChangeButtonPosition(editButton.transform, false);
+                const float Scale = 0.8f;
+                editButton.transform.localScale = new Vector3(Scale, Scale, Scale);
 
-            // Doesn't work apparently? UnityEngine.Object.Destroy(editButton.GetComponent<EventTrigger>());
-            //Button editButtonComponent = editButton.GetComponent<Button>();
+                // Set the new icon
+                editButton.GetComponent<Image>().sprite = MainPatcher.SettingIcon;
+
+                // Add the edit menu when clicked
+                GameObject editMenu = UnityEngine.Object.Instantiate(lb.delete, lb.transform);
+                editMenu.name = "Edit";
+
+                // Input menu - TODO
+                // Delete all the child objects to make room for our custom ones
+                /*for (int i = 0; i < editMenu.transform.childCount; i++)
+                {
+                    UnityEngine.Object.Destroy(editMenu.transform.GetChild(i).gameObject);
+                } TODO!!!! */
+
+                // Make sure we can open the menu
+                /*MethodInfo shiftAlphaMethod = AccessTools.Method(typeof(MainMenuLoadButton), "ShiftAlpha", new Type[] { typeof(CanvasGroup), typeof(float), typeof(float), typeof(float), typeof(bool), typeof(Selectable) });
+                Button editButtonComponent = editButton.GetComponent<Button>();
+                ButtonClickedEvent editButtonClickEvent = editButtonComponent.onClick = new ButtonClickedEvent();
+                editButtonClickEvent.AddListener(() =>
+                {
+                    uGUI_MainMenu.main.OnRightSideOpened(editMenu);
+                    uGUI_LegendBar.ClearButtons(); // REMOVES LEGEND FROM CONTROLLER!
+                    CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { lb.load.GetComponent<CanvasGroup>(), 0f, lb.animTime, lb.alphaPower, false, null }));
+                    CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { editMenu.GetComponent<CanvasGroup>(), 1f, lb.animTime, lb.alphaPower, false, null })); // TODO Make the last parameter a Selectable for controller support!
+                });*/
+                MainPatcher.ChangeEvenTriggers(editButton.GetComponent<EventTrigger>(), lightColour, darkColour);
+            }
+
 
             // Change the background colour
             Image saveBackground = lb.load.GetComponent<Image>();
@@ -87,40 +112,9 @@ namespace SaveGameCustomizer.Patches
             MainMenuLoadMenu menu = lb.transform.parent.parent.parent.GetComponent<MainMenuLoadMenu>();
             saveBackground.sprite = menu.selectedSprite;
 
-            // Remove the UI trigger from the LoadButton and DeleteButton so it doesn't mess up the colours,
-            // then we can add our own triggers to it.
-            ChangeEvenTriggers(lb.transform.Find("Load/LoadButton").GetComponent<EventTrigger>(), lightColour, darkColour);
-            ChangeEvenTriggers(lb.transform.Find("Load/DeleteButton").GetComponent<EventTrigger>(), lightColour, darkColour);
-        }
-
-        private static void ChangeEvenTriggers(EventTrigger trigger, Color lightColour, Color darkColour)
-        {
-            trigger.triggers.Clear();
-            AddNewTriggers(trigger, lightColour, darkColour);
-        }
-
-        private static void ChangeButtonPosition(Transform button, bool positive)
-        {
-            Vector3 buttonLocalPosition = button.localPosition;
-            buttonLocalPosition.x = 150;
-            buttonLocalPosition.y = 18 * (positive ? 1 : -1);
-            button.localPosition = buttonLocalPosition;
-        }
-
-        private static void AddNewTriggers(EventTrigger eventTrigger, Color lightColour, Color darkColour)
-        {
-            Image image = eventTrigger.gameObject.transform.parent.GetComponent<Image>();
-
-            eventTrigger.triggers.Add(CreateEntry(image, darkColour, EventTriggerType.PointerEnter));
-            eventTrigger.triggers.Add(CreateEntry(image, lightColour, EventTriggerType.PointerExit));
-        }
-
-        private static EventTrigger.Entry CreateEntry(Image image, Color newImageColour, EventTriggerType triggerType)
-        {
-            EventTrigger.Entry entry = new EventTrigger.Entry();
-            entry.eventID = triggerType;
-            entry.callback.AddListener((data) => image.color = newImageColour);
-            return entry;
+            // Remove the UI trigger from all needed buttons and add our own triggers to it.
+            MainPatcher.ChangeEvenTriggers(lb.transform.Find("Load/LoadButton").GetComponent<EventTrigger>(), lightColour, darkColour);
+            MainPatcher.ChangeEvenTriggers(lb.transform.Find("Load/DeleteButton").GetComponent<EventTrigger>(), lightColour, darkColour);
         }
     }
 }
