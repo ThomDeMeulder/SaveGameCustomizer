@@ -135,6 +135,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Behaviours\MainMenuCustomizeGame.cs" />
     <Compile Include="Config\SaveGameCache.cs" />
     <Compile Include="Config\SaveGameConfig.cs" />
     <Compile Include="MainPatcher.cs" />

@@ -34,11 +34,11 @@ namespace SaveGameCustomizer
             Console.WriteLine($"SaveGameCustomizer: {message}");
         }
 
-        internal static void ChangeButtonPosition(Transform button, bool positive)
+        internal static void ChangeButtonPosition(Transform button, float x, float y)
         {
             Vector3 buttonLocalPosition = button.localPosition;
-            buttonLocalPosition.x = 150;
-            buttonLocalPosition.y = 18 * (positive ? 1 : -1);
+            buttonLocalPosition.x = x;
+            buttonLocalPosition.y = y;
             button.localPosition = buttonLocalPosition;
         }
 
