@@ -54,8 +54,7 @@ namespace SaveGameCustomizer.Patches
             Transform deleteButtonTransform = lb.load.FindChild("DeleteButton").transform;
             MainPatcher.ChangeButtonPosition(deleteButtonTransform, 150, 18);
 
-            DateTime time = new DateTime(gameInfo.dateTicks);
-            lb.load.FindChild("SaveGameTime").GetComponent<Text>().text = $"{config.Name} - {time.Day} {CultureInfo.GetCultureInfo("en-GB").DateTimeFormat.GetMonthName(time.Month)}";
+            ChangeSaveName(gameInfo, lb, config.Name);
 
             if (!gameInfo.IsValid())
             {
@@ -126,14 +125,6 @@ namespace SaveGameCustomizer.Patches
 
                 Button saveButton = saveButtonGameObject.GetComponent<Button>();
                 saveButtonGameObject.GetComponent<Image>().color = Color.green;
-                saveButton.onClick = new ButtonClickedEvent();
-                saveButton.onClick.AddListener(() =>
-                {
-                    MainMenuRightSide.main.OpenGroup("SavedGames");
-                    CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { lb.load.GetComponent<CanvasGroup>(), 1f, lb.animTime, lb.alphaPower, true, null }));
-                    CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { editMenu.GetComponent<CanvasGroup>(), 0f, lb.animTime, lb.alphaPower, false, null })); // TODO Make the last parameter a Selectable for controller support!
-                    // TODO save all variables modified (colour, name)!
-                });
 
                 // Edit the save button text
                 GameObject saveButtonGameObjectText = saveButtonGameObject.transform.GetChild(0).gameObject;
@@ -159,6 +150,7 @@ namespace SaveGameCustomizer.Patches
                 inputFieldComponent.text = config.Name;
                 inputFieldComponent.textComponent = inputMenuGameObject.transform.GetChild(0).GetComponent<Text>();
                 inputFieldComponent.textComponent.color = Color.black;
+                inputFieldComponent.characterLimit = 15;
 
                 // Set the offset for the rect transform
                 RectTransform inputMenuRectTransform = inputMenuGameObject.GetComponent<RectTransform>();
@@ -169,6 +161,19 @@ namespace SaveGameCustomizer.Patches
                 Vector2 offsetMax = inputMenuRectTransform.offsetMax;
                 offsetMax.x = 90;
                 inputMenuRectTransform.offsetMax = offsetMax;
+
+                // Save the data when clicking the save button
+                saveButton.onClick = new ButtonClickedEvent();
+                saveButton.onClick.AddListener(() =>
+                {
+                    MainMenuRightSide.main.OpenGroup("SavedGames");
+                    CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { lb.load.GetComponent<CanvasGroup>(), 1f, lb.animTime, lb.alphaPower, true, null }));
+                    CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { editMenu.GetComponent<CanvasGroup>(), 0f, lb.animTime, lb.alphaPower, false, null })); // TODO Make the last parameter a Selectable for controller support!
+
+                    ChangeSaveName(gameInfo, lb, inputFieldComponent.text);
+
+                    // TODO Save to file.
+                });
             }
 
 
@@ -183,6 +188,12 @@ namespace SaveGameCustomizer.Patches
             // Remove the UI trigger from all needed buttons and add our own triggers to it.
             MainPatcher.ChangeEvenTriggers(lb.transform.Find("Load/LoadButton").GetComponent<EventTrigger>(), lightColour, darkColour);
             MainPatcher.ChangeEvenTriggers(lb.transform.Find("Load/DeleteButton").GetComponent<EventTrigger>(), lightColour, darkColour);
+        }
+
+        private static void ChangeSaveName(SaveLoadManager.GameInfo gameInfo, MainMenuLoadButton lb, string newName)
+        {
+            DateTime time = new DateTime(gameInfo.dateTicks);
+            lb.load.FindChild("SaveGameTime").GetComponent<Text>().text = $"{newName} - {time.Day} {CultureInfo.GetCultureInfo("en-GB").DateTimeFormat.GetMonthName(time.Month)}";
         }
     }
 }
