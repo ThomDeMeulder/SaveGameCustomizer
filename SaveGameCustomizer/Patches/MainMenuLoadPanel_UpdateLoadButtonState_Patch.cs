@@ -159,6 +159,7 @@ namespace SaveGameCustomizer.Patches
                 // Change the sprite
                 Image leftColourButtonImage = leftColourButton.GetComponent<Image>();
                 leftColourButtonImage.sprite = MainPatcher.ArrowIcon;
+                leftColourButtonImage.canvasRenderer.SetColor(Color.white);
 
                 // Remove the old input event
                 leftColourButton.GetComponent<Button>().onClick = new ButtonClickedEvent();
@@ -172,6 +173,7 @@ namespace SaveGameCustomizer.Patches
 
                 MainPatcher.ChangeButtonPosition(rightColourButton.transform, 50.0f, 0.0f);
                 Image rightColourButtonImage = rightColourButton.GetComponent<Image>();
+                rightColourButtonImage.canvasRenderer.SetColor(Color.white);
 
                 // Add the input menu
                 GameObject inputMenuGameObject = UnityEngine.Object.Instantiate(saveButtonGameObject, editMenu.transform);
