@@ -8,6 +8,9 @@ namespace SaveGameCustomizer.Config
 {
     internal class SaveGameConfig
     {
+        // Key / Translation
+        public static Tuple<string, string> EditButtonControllerText { get; } = new Tuple<string, string>("subnautica.sgc_mod.edit_button_controller_text", "Edit");
+
         public const string CustomSaveGameFileName = "sgc_config.json";
         private static readonly System.Random random = new System.Random();
         private static readonly string[] randomSaveGameNames =

@@ -58,10 +58,6 @@ namespace SaveGameCustomizer.Patches
             Transform deleteButtonTransform = lb.load.FindChild("DeleteButton").transform;
             MainPatcher.ChangeButtonPosition(deleteButtonTransform, 150, 18);
 
-            // Get triggers on buttons
-            EventTrigger deleteButtonEventTrigger = deleteButtonTransform.GetComponent<EventTrigger>();
-            EventTrigger loadButtonEventTrigger = lb.transform.Find("Load/LoadButton").GetComponent<EventTrigger>();
-
             ChangeSaveName(gameInfo, lb, config.Name);
 
             if (!gameInfo.IsValid())
@@ -70,6 +66,19 @@ namespace SaveGameCustomizer.Patches
                 // can't load that particular save. I can respect that.
                 return;
             }
+
+            // Get triggers on buttons
+            EventTrigger deleteButtonEventTrigger = deleteButtonTransform.GetComponent<EventTrigger>();
+            EventTrigger loadButtonEventTrigger = lb.transform.Find("Load/LoadButton").GetComponent<EventTrigger>();
+
+            // Fix the button showing up for controller
+            mGUI_Change_Legend_On_Select controllerSelectComponent = lb.GetComponent<mGUI_Change_Legend_On_Select>();
+            controllerSelectComponent.legendButtonConfiguration = controllerSelectComponent.legendButtonConfiguration.AddToArray(new LegendButtonData
+            {
+                legendButtonIdx = 3,
+                button = GameInput.Button.Jump,
+                buttonDescription = SaveGameConfig.EditButtonControllerText.Item1
+            });
 
             if (MainMenuLoadPanel_Start_Patch.IsStart)
             {

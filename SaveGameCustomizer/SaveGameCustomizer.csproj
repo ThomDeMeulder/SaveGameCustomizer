@@ -140,6 +140,7 @@
     <Compile Include="Config\SaveGameCache.cs" />
     <Compile Include="Config\SaveGameConfig.cs" />
     <Compile Include="MainPatcher.cs" />
+    <Compile Include="Patches\Language_LoadLanguageFile_Patch.cs" />
     <Compile Include="Patches\MainMenuLoadButton_onCursorEnter_Patch.cs" />
     <Compile Include="Patches\MainMenuLoadMenu_DeselectItem_Patch.cs" />
     <Compile Include="Patches\MainMenuLoadMenu_SelectItem_Patch.cs" />
