@@ -50,9 +50,17 @@ namespace SaveGameCustomizer.Patches
                 return;
             }
 
+            // Change the background colour
+            Image saveBackground = lb.load.GetComponent<Image>();
+            saveBackground.color = SaveGameConfig.AllColours[config.ColourIndex].Item1;
+
             // Change the delete button position
             Transform deleteButtonTransform = lb.load.FindChild("DeleteButton").transform;
             MainPatcher.ChangeButtonPosition(deleteButtonTransform, 150, 18);
+
+            // Get triggers on buttons
+            EventTrigger deleteButtonEventTrigger = deleteButtonTransform.GetComponent<EventTrigger>();
+            EventTrigger loadButtonEventTrigger = lb.transform.Find("Load/LoadButton").GetComponent<EventTrigger>();
 
             ChangeSaveName(gameInfo, lb, config.Name);
 
@@ -62,11 +70,6 @@ namespace SaveGameCustomizer.Patches
                 // can't load that particular save. I can respect that.
                 return;
             }
-
-            // Get the colours for this save
-            Color lightColour = SaveGameConfig.AllColours[config.ColourIndex].Item1;
-            Color darkColour = SaveGameConfig.AllColours[config.ColourIndex].Item2;
-
 
             if (MainMenuLoadPanel_Start_Patch.IsStart)
             {
@@ -83,7 +86,8 @@ namespace SaveGameCustomizer.Patches
                 editButton.transform.localScale = new Vector3(Scale, Scale, Scale);
 
                 // Set the new icon
-                editButton.GetComponent<Image>().sprite = MainPatcher.SettingIcon;
+                Image editButtonImage = editButton.GetComponent<Image>();
+                editButtonImage.sprite = MainPatcher.SettingIcon;
 
                 // Add the edit menu
                 GameObject editMenu = UnityEngine.Object.Instantiate(lb.delete, lb.transform);
@@ -91,19 +95,20 @@ namespace SaveGameCustomizer.Patches
 
                 // Remove / add components from the menu
                 UnityEngine.Object.Destroy(editMenu.GetComponent<MainMenuDeleteGame>());
+                UnityEngine.Object.Destroy(editMenu.GetComponent<TranslationLiveUpdate>());
                 editMenu.AddComponent<MainMenuCustomizeGame>();
 
                 // Make sure we can open the edit menu
                 MethodInfo shiftAlphaMethod = AccessTools.Method(typeof(MainMenuLoadButton), "ShiftAlpha", new Type[] { typeof(CanvasGroup), typeof(float), typeof(float), typeof(float), typeof(bool), typeof(Selectable) });
                 EventTrigger editButtonTriggerComponent = editButton.GetComponent<EventTrigger>();
-                MainPatcher.ChangeEvenTriggers(editButtonTriggerComponent, lightColour, darkColour);
+                editButtonTriggerComponent.triggers.Clear();
 
                 EventTrigger.Entry entry = new EventTrigger.Entry();
                 entry.eventID = EventTriggerType.PointerClick;
                 entry.callback.AddListener((data) =>
                 {
                     uGUI_MainMenu.main.OnRightSideOpened(editMenu);
-                    uGUI_LegendBar.ClearButtons(); // REMOVES LEGEND FOR CONTROLLER!
+                    uGUI_LegendBar.ClearButtons(); // Removes the legend, controller support.
                     CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { lb.load.GetComponent<CanvasGroup>(), 0f, lb.animTime, lb.alphaPower, false, null }));
                     CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { editMenu.GetComponent<CanvasGroup>(), 1f, lb.animTime, lb.alphaPower, true, null })); // TODO Make the last parameter a Selectable for controller support!
                 });
@@ -133,9 +138,43 @@ namespace SaveGameCustomizer.Patches
                 saveButtonText.text = "Save";
                 saveButtonText.color = Color.white;
 
+                // Add the colour buttons
+                GameObject leftColourButton = UnityEngine.Object.Instantiate(saveButtonGameObject, editMenu.transform);
+
+                // Resize the clickable area
+                RectTransform leftColourButtonRectTransform = leftColourButton.GetComponent<RectTransform>();
+                Vector2 offsetMaxLeftColourButton = leftColourButtonRectTransform.offsetMax;
+                offsetMaxLeftColourButton.x = -20;
+                leftColourButtonRectTransform.offsetMax = offsetMaxLeftColourButton;
+                Vector2 sizeDeltaLeftColourButton = leftColourButtonRectTransform.sizeDelta;
+                sizeDeltaLeftColourButton.x = 52;
+                leftColourButtonRectTransform.sizeDelta = sizeDeltaLeftColourButton;
+
+                MainPatcher.ChangeButtonPosition(leftColourButton.transform, -110.0f, 0.0f);
+                leftColourButton.name = "EditMenuLeftColourButton";
+
+                // Destroy unneeded child
+                UnityEngine.Object.DestroyImmediate(leftColourButton.transform.GetChild(0).gameObject);
+
+                // Change the sprite
+                Image leftColourButtonImage = leftColourButton.GetComponent<Image>();
+                leftColourButtonImage.sprite = MainPatcher.ArrowIcon;
+
+                // Remove the old input event
+                leftColourButton.GetComponent<Button>().onClick = new ButtonClickedEvent();
+
+                // Initialise the right colour button
+                GameObject rightColourButton = UnityEngine.Object.Instantiate(leftColourButton, editMenu.transform);
+                rightColourButton.name = "EditMenuRightColourButton";
+                Vector3 rightColourButtonEuler = rightColourButton.transform.eulerAngles;
+                rightColourButtonEuler.z = 180.0f;
+                rightColourButton.transform.eulerAngles = rightColourButtonEuler;
+
+                MainPatcher.ChangeButtonPosition(rightColourButton.transform, 50.0f, 0.0f);
+                Image rightColourButtonImage = rightColourButton.GetComponent<Image>();
+
                 // Add the input menu
                 GameObject inputMenuGameObject = UnityEngine.Object.Instantiate(saveButtonGameObject, editMenu.transform);
-                MainPatcher.ChangeButtonPosition(inputMenuGameObject.transform, 80.0f, 0.0f);
                 inputMenuGameObject.name = "EditMenuInputMenu";
 
                 // Destroy all unneeded components / children
@@ -149,7 +188,7 @@ namespace SaveGameCustomizer.Patches
                 InputField inputFieldComponent = inputMenuGameObject.AddComponent<InputField>();
                 inputFieldComponent.text = config.Name;
                 inputFieldComponent.textComponent = inputMenuGameObject.transform.GetChild(0).GetComponent<Text>();
-                inputFieldComponent.textComponent.color = Color.black;
+                inputFieldComponent.textComponent.color = Color.white;
                 inputFieldComponent.characterLimit = 15;
 
                 // Set the offset for the rect transform
@@ -162,6 +201,8 @@ namespace SaveGameCustomizer.Patches
                 offsetMax.x = 90;
                 inputMenuRectTransform.offsetMax = offsetMax;
 
+                MainPatcher.ChangeButtonPosition(inputMenuGameObject.transform, -30.0f, 0.0f);
+
                 // Save the data when clicking the save button
                 saveButton.onClick = new ButtonClickedEvent();
                 saveButton.onClick.AddListener(() =>
@@ -171,23 +212,113 @@ namespace SaveGameCustomizer.Patches
                     CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { editMenu.GetComponent<CanvasGroup>(), 0f, lb.animTime, lb.alphaPower, false, null })); // TODO Make the last parameter a Selectable for controller support!
 
                     ChangeSaveName(gameInfo, lb, inputFieldComponent.text);
+                    config.Name = inputFieldComponent.text;
 
+                    ChangeSlotColourTriggers(saveBackground, deleteButtonEventTrigger, loadButtonEventTrigger, editButtonTriggerComponent, SaveGameConfig.AllColours[config.ColourIndex].Item1, SaveGameConfig.AllColours[config.ColourIndex].Item2);
                     // TODO Save to file.
                 });
+
+                // Change all colours and triggers
+                ChangeSlotColourTriggers(saveBackground, deleteButtonEventTrigger, loadButtonEventTrigger, editButtonTriggerComponent, SaveGameConfig.AllColours[config.ColourIndex].Item1, SaveGameConfig.AllColours[config.ColourIndex].Item2);
+                leftColourButtonImage.color = Color.white;
+                rightColourButtonImage.color = Color.white;
+                UpdateDisplayColoursOnClick(config, inputFieldComponent);
+                ChangeEventTriggerForColourButton(leftColourButton.GetComponent<EventTrigger>(), config, -1, inputFieldComponent);
+                ChangeEventTriggerForColourButton(rightColourButton.GetComponent<EventTrigger>(), config, 1, inputFieldComponent);
             }
-
-
-            // Change the background colour
-            Image saveBackground = lb.load.GetComponent<Image>();
-            saveBackground.color = SaveGameConfig.AllColours[config.ColourIndex].Item1;
 
             // Change the texture sprite to be the highlighted one, this is so we don't get dark / weird colours
             MainMenuLoadMenu menu = lb.transform.parent.parent.parent.GetComponent<MainMenuLoadMenu>();
             saveBackground.sprite = menu.selectedSprite;
+        }
 
-            // Remove the UI trigger from all needed buttons and add our own triggers to it.
-            MainPatcher.ChangeEvenTriggers(lb.transform.Find("Load/LoadButton").GetComponent<EventTrigger>(), lightColour, darkColour);
-            MainPatcher.ChangeEvenTriggers(lb.transform.Find("Load/DeleteButton").GetComponent<EventTrigger>(), lightColour, darkColour);
+        private static void ChangeSlotColourTriggers(Image slotBackGroundImage, EventTrigger deleteButton, EventTrigger loadButton, EventTrigger editButton, Color lightColour, Color darkColour)
+        {
+            slotBackGroundImage.color = lightColour;
+            ChangeEvenTriggers(loadButton, lightColour, darkColour);
+            ChangeEvenTriggers(deleteButton, lightColour, darkColour);
+            ChangeEvenTriggers(editButton, lightColour, darkColour, true);
+        }
+
+        private static void UpdateDisplayColoursOnClick(SaveGameConfig config, InputField inputFieldComponent)
+        {
+            inputFieldComponent.image.color = SaveGameConfig.ProperColours[config.ColourIndex];
+        }
+
+        private static void ChangeEventTriggerForColourButton(EventTrigger eventTrigger, SaveGameConfig config, int addAmount, InputField inputFieldComponent)
+        {
+            eventTrigger.gameObject.GetComponent<Button>().transition = Selectable.Transition.None;
+            eventTrigger.triggers.Clear();
+            eventTrigger.triggers.Add(CreateEntry(config, addAmount, inputFieldComponent));
+        }
+
+        private static EventTrigger.Entry CreateEntry(SaveGameConfig config, int addAmount, InputField inputFieldComponent)
+        {
+            EventTrigger.Entry entry = new EventTrigger.Entry();
+            entry.eventID = EventTriggerType.PointerClick;
+            entry.callback.AddListener(data => 
+            {
+                if (config.ColourIndex + addAmount >= SaveGameConfig.AllColours.Length)
+                {
+                    config.ColourIndex = 0;
+                } 
+                else if (config.ColourIndex + addAmount < 0)
+                {
+                    config.ColourIndex = SaveGameConfig.AllColours.Length - 1;
+                }
+                else
+                {
+                    config.ColourIndex += addAmount;
+                }
+                UpdateDisplayColoursOnClick(config, inputFieldComponent);
+            });
+            return entry;
+        }
+
+        private static void ChangeEvenTriggers(EventTrigger trigger, Color lightColour, Color darkColour, bool skipClear = false)
+        {
+            if (!skipClear) trigger.triggers.Clear();
+            AddNewTriggers(trigger, lightColour, darkColour);
+        }
+
+        private static void AddNewTriggers(EventTrigger eventTrigger, Color lightColour, Color darkColour)
+        {
+            Image image = eventTrigger.gameObject.transform.parent.GetComponent<Image>();
+
+            eventTrigger.triggers.Add(CreateEntry(image, darkColour, EventTriggerType.PointerEnter));
+            eventTrigger.triggers.Add(CreateEntry(image, lightColour, EventTriggerType.PointerExit));
+        }
+
+        private static EventTrigger.Entry CreateEntry(Image image, Color newImageColour, EventTriggerType triggerType)
+        {
+            EventTrigger.Entry entry = new EventTrigger.Entry();
+            entry.eventID = triggerType;
+            entry.callback.AddListener((data) => image.color = newImageColour);
+            return entry;
+        }
+
+        private static int GetPreviousColourIndexByIndex(int currentIndex)
+        {
+            if (--currentIndex < 0)
+            {
+                return SaveGameConfig.AllColours.Length - 1;
+            }
+            else
+            {
+                return currentIndex;
+            }
+        }
+
+        private static int GetNextColourIndexByIndex(int currentIndex)
+        {
+            if (++currentIndex == SaveGameConfig.AllColours.Length)
+            {
+                return 0;
+            }
+            else
+            {
+                return currentIndex;
+            }
         }
 
         private static void ChangeSaveName(SaveLoadManager.GameInfo gameInfo, MainMenuLoadButton lb, string newName)
