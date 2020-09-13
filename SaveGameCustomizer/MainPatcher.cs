@@ -4,11 +4,13 @@ using QModManager.API.ModLoading;
 using SaveGameCustomizer.Behaviours;
 using SaveGameCustomizer.Events;
 using System;
+using System.Collections;
 using System.IO;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UWE;
 
 namespace SaveGameCustomizer
 {
@@ -63,6 +65,16 @@ namespace SaveGameCustomizer
 
             Image selectedImageComponent = ___selectedItem.transform.GetChild(0).GetComponent<Image>();
             selectedImageComponent.color = highlight ? component.DarkerColour : component.SelectedColour;
+        }
+
+        internal static void ChangeToEditMenu(GameObject editMenu, MainMenuLoadButton lb, InputField inputField)
+        {
+            MethodInfo shiftAlphaMethod = AccessTools.Method(typeof(MainMenuLoadButton), "ShiftAlpha", new Type[] { typeof(CanvasGroup), typeof(float), typeof(float), typeof(float), typeof(bool), typeof(Selectable) });
+
+            uGUI_MainMenu.main.OnRightSideOpened(editMenu);
+            uGUI_LegendBar.ClearButtons(); // Removes the legend, controller support.
+            CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { lb.load.GetComponent<CanvasGroup>(), 0f, lb.animTime, lb.alphaPower, false, null }));
+            CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { editMenu.GetComponent<CanvasGroup>(), 1f, lb.animTime, lb.alphaPower, true, inputField }));
         }
     }
 }

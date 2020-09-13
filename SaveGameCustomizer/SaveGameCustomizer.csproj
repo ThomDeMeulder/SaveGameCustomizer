@@ -146,6 +146,7 @@
     <Compile Include="Patches\Language_LoadLanguageFile_Patch.cs" />
     <Compile Include="Patches\MainMenuLoadButton_onCursorEnter_Patch.cs" />
     <Compile Include="Patches\MainMenuLoadMenu_DeselectItem_Patch.cs" />
+    <Compile Include="Patches\MainMenuLoadMenu_OnButtonDown_Patch.cs" />
     <Compile Include="Patches\MainMenuLoadMenu_SelectItem_Patch.cs" />
     <Compile Include="Patches\MainMenuLoadPanel_Start_Patch.cs" />
     <Compile Include="Patches\MainMenuLoadPanel_UpdateLoadButtonState_Patch.cs" />

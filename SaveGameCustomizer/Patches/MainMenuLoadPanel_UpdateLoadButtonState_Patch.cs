@@ -124,17 +124,6 @@ namespace SaveGameCustomizer.Patches
                 EventTrigger editButtonTriggerComponent = editButton.GetComponent<EventTrigger>();
                 editButtonTriggerComponent.triggers.Clear();
 
-                EventTrigger.Entry entry = new EventTrigger.Entry();
-                entry.eventID = EventTriggerType.PointerClick;
-                entry.callback.AddListener((data) =>
-                {
-                    uGUI_MainMenu.main.OnRightSideOpened(editMenu);
-                    uGUI_LegendBar.ClearButtons(); // Removes the legend, controller support.
-                    CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { lb.load.GetComponent<CanvasGroup>(), 0f, lb.animTime, lb.alphaPower, false, null }));
-                    CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { editMenu.GetComponent<CanvasGroup>(), 1f, lb.animTime, lb.alphaPower, true, null })); // TODO Make the last parameter a Selectable for controller support!
-                });
-                editButtonTriggerComponent.triggers.Add(entry);
-
                 // Delete all the child objects to make room for our custom ones
                 for (int i = 0; i < editMenu.transform.childCount; i++)
                 {
@@ -249,7 +238,15 @@ namespace SaveGameCustomizer.Patches
                     // TODO Save to file.
                 });
 
-                // Change all colours and triggers
+                // Change all colours and change/add/remove triggers
+                EventTrigger.Entry entry = new EventTrigger.Entry();
+                entry.eventID = EventTriggerType.PointerClick;
+                entry.callback.AddListener((data) =>
+                {
+                    MainPatcher.ChangeToEditMenu(editMenu, lb, inputFieldComponent);
+                });
+                editButtonTriggerComponent.triggers.Add(entry);
+
                 ChangeSlotColourTriggers(saveBackground, deleteButtonEventTrigger, loadButtonEventTrigger, editButtonTriggerComponent, lightColour, darkerColour);
                 leftColourButtonImage.color = Color.white;
                 rightColourButtonImage.color = Color.white;
