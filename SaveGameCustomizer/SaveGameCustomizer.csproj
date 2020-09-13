@@ -140,6 +140,7 @@
     <Compile Include="Config\SaveGameConfig.cs" />
     <Compile Include="MainPatcher.cs" />
     <Compile Include="Patches\MainMenuLoadButton_onCursorEnter_Patch.cs" />
+    <Compile Include="Patches\MainMenuLoadMenu_SelectItem_Patch.cs" />
     <Compile Include="Patches\MainMenuLoadPanel_Start_Patch.cs" />
     <Compile Include="Patches\MainMenuLoadPanel_UpdateLoadButtonState_Patch.cs" />
     <Compile Include="Patches\SaveLoadManager_RegisterSaveGame_Patch.cs" />
