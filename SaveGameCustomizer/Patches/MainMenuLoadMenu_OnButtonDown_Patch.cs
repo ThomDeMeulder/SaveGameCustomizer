@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace SaveGameCustomizer.Patches
 {
@@ -15,7 +14,7 @@ namespace SaveGameCustomizer.Patches
                 if (___selectedItem != null && ___selectedItem.name != "NewGame")
                 {
                     // Change to edit menu
-                    MainPatcher.ChangeToEditMenu(___selectedItem.transform.Find("Edit").gameObject, ___selectedItem.GetComponent<MainMenuLoadButton>(), ___selectedItem.transform.Find("Edit/EditMenuInputMenu").GetComponent<InputField>());
+                    MainPatcher.ChangeToEditMenu(___selectedItem.transform.Find("Edit").gameObject, ___selectedItem.GetComponent<MainMenuLoadButton>(), null);
 
                     // Return needed results
                     __result = true;

@@ -3,7 +3,6 @@ using QModManager.API;
 using SaveGameCustomizer.Behaviours;
 using SaveGameCustomizer.Config;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
@@ -11,7 +10,6 @@ using System.Reflection.Emit;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using UWE;
 using static UnityEngine.UI.Button;
 
 namespace SaveGameCustomizer.Patches
@@ -139,7 +137,7 @@ namespace SaveGameCustomizer.Patches
                 UnityEngine.Object.DestroyImmediate(saveButtonGameObject.GetComponent<TranslationLiveUpdate>());
 
                 Button saveButton = saveButtonGameObject.GetComponent<Button>();
-                saveButtonGameObject.GetComponent<Image>().color = Color.green;
+                saveButtonGameObject.GetComponent<Image>().color = Color.green;;
 
                 // Edit the save button text
                 GameObject saveButtonGameObjectText = saveButtonGameObject.transform.GetChild(0).gameObject;
@@ -219,9 +217,7 @@ namespace SaveGameCustomizer.Patches
                 saveButton.onClick = new ButtonClickedEvent();
                 saveButton.onClick.AddListener(() =>
                 {
-                    MainMenuRightSide.main.OpenGroup("SavedGames");
-                    CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { lb.load.GetComponent<CanvasGroup>(), 1f, lb.animTime, lb.alphaPower, true, null }));
-                    CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { editMenu.GetComponent<CanvasGroup>(), 0f, lb.animTime, lb.alphaPower, false, null })); // TODO Make the last parameter a Selectable for controller support!
+                    MainPatcher.ChangeToSavesMenu(editMenu, lb);
 
                     // Update all needed data
                     ChangeSaveName(gameInfo, lb, inputFieldComponent.text);
@@ -229,7 +225,7 @@ namespace SaveGameCustomizer.Patches
                     ChangeSlotColourTriggers(saveBackground, deleteButtonEventTrigger, loadButtonEventTrigger, editButtonTriggerComponent, SaveGameConfig.AllColours[config.ColourIndex].Item1, SaveGameConfig.AllColours[config.ColourIndex].Item2);
 
                     // Notify where needed
-                    MainPatcher.RaiseColourEvent(new Events.SlotChangedData
+                    MainPatcher.RaiseSlotDataChangedEvent(new Events.SlotChangedData
                     {
                         NewColourIndex = config.ColourIndex,
                         Object = lb.gameObject
@@ -243,7 +239,7 @@ namespace SaveGameCustomizer.Patches
                 entry.eventID = EventTriggerType.PointerClick;
                 entry.callback.AddListener((data) =>
                 {
-                    MainPatcher.ChangeToEditMenu(editMenu, lb, inputFieldComponent);
+                    MainPatcher.ChangeToEditMenu(editMenu, lb, saveButton);
                 });
                 editButtonTriggerComponent.triggers.Add(entry);
 
