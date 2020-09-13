@@ -2,6 +2,7 @@
 using QModManager.API;
 using QModManager.API.ModLoading;
 using SaveGameCustomizer.Behaviours;
+using SaveGameCustomizer.Events;
 using System;
 using System.IO;
 using System.Reflection;
@@ -17,6 +18,8 @@ namespace SaveGameCustomizer
         internal static Sprite SettingIcon { get; private set; }
         internal static Sprite ArrowIcon { get; private set; }
 
+        internal static event Action<SlotChangedData> OnSlotDataChanged;
+
         [QModPatch]
         public static void Patch()
         {
@@ -30,6 +33,11 @@ namespace SaveGameCustomizer
             SettingIcon = assetBundle.LoadAsset<Sprite>("setting_icon");
             ArrowIcon = assetBundle.LoadAsset<Sprite>("arrow_icon");
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), "com.github.thom.save_game_customizer");
+        }
+
+        internal static void RaiseColourEvent(SlotChangedData data)
+        {
+            OnSlotDataChanged?.Invoke(data);
         }
 
         internal static void Log(string message)

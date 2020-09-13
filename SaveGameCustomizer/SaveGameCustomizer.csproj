@@ -137,14 +137,17 @@
   <ItemGroup>
     <Compile Include="Behaviours\MainMenuCustomizeGame.cs" />
     <Compile Include="Behaviours\MainMenuEditButtonChanger.cs" />
+    <Compile Include="Behaviours\MainMenuSaveGameUpdater.cs" />
     <Compile Include="Behaviours\SelectedColours.cs" />
     <Compile Include="Config\SaveGameCache.cs" />
     <Compile Include="Config\SaveGameConfig.cs" />
+    <Compile Include="Events\SlotChangedData.cs" />
     <Compile Include="MainPatcher.cs" />
     <Compile Include="Patches\Language_LoadLanguageFile_Patch.cs" />
     <Compile Include="Patches\MainMenuLoadButton_onCursorEnter_Patch.cs" />
     <Compile Include="Patches\MainMenuLoadMenu_DeselectItem_Patch.cs" />
     <Compile Include="Patches\MainMenuLoadMenu_SelectItem_Patch.cs" />
+    <Compile Include="Patches\MainMenuLoadPanel_Start_Patch.cs" />
     <Compile Include="Patches\MainMenuLoadPanel_UpdateLoadButtonState_Patch.cs" />
     <Compile Include="Patches\SaveLoadManager_RegisterSaveGame_Patch.cs" />
     <Compile Include="Patches\UserStoragePC_LoadFilesAsyncImpl_Patch.cs" />

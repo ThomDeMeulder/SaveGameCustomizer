@@ -41,7 +41,7 @@ namespace SaveGameCustomizer.Config
             CreateColoursFromRGB(252.0f, 189.0f, 250.0f, 212.0f, 159.0f, 210.0f, 0.6f, 0.6f), // Pink
             CreateColoursFromRGB(0.0f, 34.0f, 255.0f, 3.0f, 23.0f, 150.0f, 0.7f, 0.8f), // Dark Blue
             CreateColoursFromRGB(214.0f, 0.0f, 0.0f, 160.0f, 0.0f, 0.0f), // Dark Red
-            CreateColoursFromRGB(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) // Black
+            CreateColoursFromRGB(0.0f, 0.0f, 0.0f, 40.0f, 40.0f, 40.0f) // Black / gray
         };
 
         // Used for white materials

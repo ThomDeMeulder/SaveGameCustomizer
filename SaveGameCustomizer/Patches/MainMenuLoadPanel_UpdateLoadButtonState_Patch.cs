@@ -234,10 +234,18 @@ namespace SaveGameCustomizer.Patches
                     CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { lb.load.GetComponent<CanvasGroup>(), 1f, lb.animTime, lb.alphaPower, true, null }));
                     CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { editMenu.GetComponent<CanvasGroup>(), 0f, lb.animTime, lb.alphaPower, false, null })); // TODO Make the last parameter a Selectable for controller support!
 
+                    // Update all needed data
                     ChangeSaveName(gameInfo, lb, inputFieldComponent.text);
                     config.Name = inputFieldComponent.text;
-
                     ChangeSlotColourTriggers(saveBackground, deleteButtonEventTrigger, loadButtonEventTrigger, editButtonTriggerComponent, SaveGameConfig.AllColours[config.ColourIndex].Item1, SaveGameConfig.AllColours[config.ColourIndex].Item2);
+
+                    // Notify where needed
+                    MainPatcher.RaiseColourEvent(new Events.SlotChangedData
+                    {
+                        NewColourIndex = config.ColourIndex,
+                        Object = lb.gameObject
+                    });
+
                     // TODO Save to file.
                 });
 

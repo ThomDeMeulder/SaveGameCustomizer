@@ -9,6 +9,7 @@ namespace SaveGameCustomizer.Behaviours
         private void Start()
         {
             editButton = transform.Find("Load/EditButton").gameObject;
+
             GameInput.OnPrimaryDeviceChanged += OnPrimaryDeviceChanged;
             if (GameInput.IsPrimaryDeviceGamepad())
             {
