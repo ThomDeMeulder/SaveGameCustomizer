@@ -299,30 +299,6 @@ namespace SaveGameCustomizer.Patches
             return entry;
         }
 
-        private static int GetPreviousColourIndexByIndex(int currentIndex)
-        {
-            if (--currentIndex < 0)
-            {
-                return SaveGameConfig.AllColours.Length - 1;
-            }
-            else
-            {
-                return currentIndex;
-            }
-        }
-
-        private static int GetNextColourIndexByIndex(int currentIndex)
-        {
-            if (++currentIndex == SaveGameConfig.AllColours.Length)
-            {
-                return 0;
-            }
-            else
-            {
-                return currentIndex;
-            }
-        }
-
         private static void ChangeSaveName(SaveLoadManager.GameInfo gameInfo, MainMenuLoadButton lb, string newName)
         {
             DateTime time = new DateTime(gameInfo.dateTicks);
