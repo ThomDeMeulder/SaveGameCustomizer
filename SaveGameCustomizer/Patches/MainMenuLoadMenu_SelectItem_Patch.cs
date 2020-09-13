@@ -24,5 +24,10 @@ namespace SaveGameCustomizer.Patches
                 yield return instruction;
             }
         }
+
+        private static void Postfix(GameObject ___selectedItem)
+        {
+            MainPatcher.HandleChangeColour(___selectedItem, true);
+        }
     }
 }

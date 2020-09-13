@@ -220,13 +220,22 @@ namespace SaveGameCustomizer.Patches
                     // TODO Save to file.
                 });
 
+                // Get the colours
+                Color lightColour = SaveGameConfig.AllColours[config.ColourIndex].Item1;
+                Color darkerColour = SaveGameConfig.AllColours[config.ColourIndex].Item2;
+
                 // Change all colours and triggers
-                ChangeSlotColourTriggers(saveBackground, deleteButtonEventTrigger, loadButtonEventTrigger, editButtonTriggerComponent, SaveGameConfig.AllColours[config.ColourIndex].Item1, SaveGameConfig.AllColours[config.ColourIndex].Item2);
+                ChangeSlotColourTriggers(saveBackground, deleteButtonEventTrigger, loadButtonEventTrigger, editButtonTriggerComponent, lightColour, darkerColour);
                 leftColourButtonImage.color = Color.white;
                 rightColourButtonImage.color = Color.white;
                 UpdateDisplayColoursOnClick(config, inputFieldComponent);
                 ChangeEventTriggerForColourButton(leftColourButton.GetComponent<EventTrigger>(), config, -1, inputFieldComponent);
                 ChangeEventTriggerForColourButton(rightColourButton.GetComponent<EventTrigger>(), config, 1, inputFieldComponent);
+
+                // Add the SelectedColours component to the save for controller support
+                SelectedColours colourComponent = lb.gameObject.AddComponent<SelectedColours>();
+                colourComponent.SelectedColour = lightColour;
+                colourComponent.DarkerColour = darkerColour;
             }
 
             // Change the texture sprite to be the highlighted one, this is so we don't get dark / weird colours

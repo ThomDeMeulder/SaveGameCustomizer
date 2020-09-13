@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using QModManager.API;
 using QModManager.API.ModLoading;
+using SaveGameCustomizer.Behaviours;
 using System;
 using System.IO;
 using System.Reflection;
@@ -42,6 +43,18 @@ namespace SaveGameCustomizer
             buttonLocalPosition.x = x;
             buttonLocalPosition.y = y;
             button.localPosition = buttonLocalPosition;
+        }
+
+        internal static void HandleChangeColour(GameObject ___selectedItem, bool highlight)
+        {
+            SelectedColours component = ___selectedItem.GetComponent<SelectedColours>();
+            if (component == null)
+            {
+                return;
+            }
+
+            Image selectedImageComponent = ___selectedItem.transform.GetChild(0).GetComponent<Image>();
+            selectedImageComponent.color = highlight ? component.DarkerColour : component.SelectedColour;
         }
     }
 }
