@@ -38,6 +38,7 @@ namespace SaveGameCustomizer.Config
             CreateColoursFromRGB(252.0f, 189.0f, 250.0f, 212.0f, 159.0f, 210.0f, 0.6f, 0.6f), // Pink
             CreateColoursFromRGB(0.0f, 34.0f, 255.0f, 3.0f, 23.0f, 150.0f, 0.7f, 0.8f), // Dark Blue
             CreateColoursFromRGB(214.0f, 0.0f, 0.0f, 160.0f, 0.0f, 0.0f), // Dark Red
+            CreateColoursFromRGB(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f) // Black
         };
 
         // Used for white materials
@@ -49,7 +50,8 @@ namespace SaveGameCustomizer.Config
             CreateColourFromRGB(187.0f, 102.0f, 189.0f),
             CreateColourFromRGB(232.0f, 176.0f, 232.0f),
             CreateColourFromRGB(11.0f, 97.0f, 184.0f),
-            CreateColourFromRGB(212.0f, 6.0f, 6.0f)
+            CreateColourFromRGB(212.0f, 6.0f, 6.0f),
+            CreateColourFromRGB(0.0f, 0.0f, 0.0f)
         };
 
         [JsonProperty("name")]
