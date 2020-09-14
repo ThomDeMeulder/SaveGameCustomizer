@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using SaveGameCustomizer.Config;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,23 +7,44 @@ namespace SaveGameCustomizer.Behaviours
 {
     public class MainMenuCustomizeGame : MonoBehaviour, uGUI_INavigableIconGrid, uGUI_IButtonReceiver
     {
+        private SelectedColours coloursComponent;
         private GameObject saveButton;
         private GameObject inputMenu;
+        private InputField inputField;
         private GameObject selectedItem;
         private LegendButtonData[] defaultLegendButtonItems;
-        private mGUI_Change_Legend_On_Select legend;
+        private Image saveButtonImage;
 
         private void Start()
         {
             // Get references
+            coloursComponent = transform.parent.GetComponent<SelectedColours>();
             defaultLegendButtonItems = transform.parent.GetComponent<mGUI_Change_Legend_On_Select>().legendButtonConfiguration;
             saveButton = transform.Find("EditMenuSaveButton").gameObject;
             inputMenu = transform.Find("EditMenuInputMenu").gameObject;
+            inputField = inputMenu.GetComponent<InputField>();
+            saveButtonImage = saveButton.GetComponent<Image>();
+            saveButton.GetComponent<CanvasRenderer>().SetColor(Color.white);
 
             // Add legend for controller
             mGUI_Change_Legend_On_Select saveButtonLegend = saveButton.AddComponent<mGUI_Change_Legend_On_Select>();
             saveButtonLegend.legendButtonConfiguration = new LegendButtonData[] { defaultLegendButtonItems[0], defaultLegendButtonItems[1] };
-            legend = saveButtonLegend;
+
+            mGUI_Change_Legend_On_Select inputMenuLegend = inputMenu.AddComponent<mGUI_Change_Legend_On_Select>();
+            inputMenuLegend.legendButtonConfiguration = new LegendButtonData[] { defaultLegendButtonItems[0],
+                new LegendButtonData
+                {
+                    legendButtonIdx = 1,
+                    button = GameInput.Button.MoveDown,
+                    buttonDescription = SaveGameConfig.ColourButtonControllerText.Item1
+                },
+                new LegendButtonData
+                {
+                    legendButtonIdx = 2,
+                    button = GameInput.Button.MoveUp,
+                    buttonDescription = SaveGameConfig.ColourButtonControllerText.Item1
+                }
+            };
         }
 
         public void DeselectItem()
@@ -30,6 +52,11 @@ namespace SaveGameCustomizer.Behaviours
             if (selectedItem == null)
             {
                 return;
+            }
+
+            if (ReferenceEquals(selectedItem, saveButton))
+            {
+                saveButtonImage.color = Color.green;
             }
 
             selectedItem = null;
@@ -56,13 +83,27 @@ namespace SaveGameCustomizer.Behaviours
             {
                 MainPatcher.ChangeToSavesMenu(gameObject, transform.parent.GetComponent<MainMenuLoadButton>());
                 return true;
-            } else if (button == GameInput.Button.UISubmit)
+            } 
+            else if (button == GameInput.Button.UISubmit)
             {
                 if (ReferenceEquals(selectedItem, saveButton))
                 {
                     saveButton.GetComponent<Button>().onClick?.Invoke();
                 }
                 return true;
+            } 
+            else if (ReferenceEquals(selectedItem, inputMenu))
+            {
+                if (button == GameInput.Button.MoveDown)
+                {
+                    MainPatcher.UpdateColourIndex(coloursComponent.ColourIndex, 1, coloursComponent, inputField);
+                    return true;
+                }
+                else if (button == GameInput.Button.MoveUp)
+                {
+                    MainPatcher.UpdateColourIndex(coloursComponent.ColourIndex, -1, coloursComponent, inputField);
+                    return true;
+                }
             }
             return false;
         }
@@ -78,11 +119,20 @@ namespace SaveGameCustomizer.Behaviours
             DeselectItem();
             selectedItem = item as GameObject;
 
-            selectedItem.GetComponent<Selectable>().Select(); // TODO check if this isn't the "Swap" problem when selecting with controller
+            if (ReferenceEquals(selectedItem, saveButton))
+            {
+                saveButtonImage.color = Color.yellow;
+            }
+
+            selectedItem.GetComponent<Selectable>().Select();
 
             // TODO: someday make a virtual keyboard for controllers because UWE doesn't provide them 'out of the box' for PC. :(
 
-            legend.SyncLegendBarToGUISelection();
+            mGUI_Change_Legend_On_Select legendComponent = selectedItem.GetComponent<mGUI_Change_Legend_On_Select>();
+            if (legendComponent != null)
+            {
+                legendComponent.SyncLegendBarToGUISelection();
+            }
         }
 
         public bool SelectItemClosestToPosition(Vector3 worldPos)

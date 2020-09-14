@@ -10,6 +10,7 @@ namespace SaveGameCustomizer.Patches
         private static void Postfix(ref Dictionary<string, string> ___strings)
         {
             ___strings.Add(SaveGameConfig.EditButtonControllerText.Item1, SaveGameConfig.EditButtonControllerText.Item2);
+            ___strings.Add(SaveGameConfig.ColourButtonControllerText.Item1, SaveGameConfig.ColourButtonControllerText.Item2);
         }
     }
 }

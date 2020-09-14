@@ -91,6 +91,7 @@ namespace SaveGameCustomizer.Patches
                 SelectedColours colourComponent = lb.gameObject.AddComponent<SelectedColours>();
                 colourComponent.SelectedColour = lightColour;
                 colourComponent.DarkerColour = darkerColour;
+                colourComponent.ColourIndex = config.ColourIndex;
 
                 // Add the edit button
                 GameObject editButton = UnityEngine.Object.Instantiate(deleteButtonTransform.gameObject, deleteButtonTransform.parent);
@@ -222,12 +223,12 @@ namespace SaveGameCustomizer.Patches
                     // Update all needed data
                     ChangeSaveName(gameInfo, lb, inputFieldComponent.text);
                     config.Name = inputFieldComponent.text;
-                    ChangeSlotColourTriggers(saveBackground, deleteButtonEventTrigger, loadButtonEventTrigger, editButtonTriggerComponent, SaveGameConfig.AllColours[config.ColourIndex].Item1, SaveGameConfig.AllColours[config.ColourIndex].Item2);
+                    ChangeSlotColourTriggers(saveBackground, deleteButtonEventTrigger, loadButtonEventTrigger, editButtonTriggerComponent, SaveGameConfig.AllColours[colourComponent.ColourIndex].Item1, SaveGameConfig.AllColours[colourComponent.ColourIndex].Item2);
 
                     // Notify where needed
                     MainPatcher.RaiseSlotDataChangedEvent(new Events.SlotChangedData
                     {
-                        NewColourIndex = config.ColourIndex,
+                        NewColourIndex = colourComponent.ColourIndex,
                         Object = lb.gameObject
                     });
 
@@ -246,9 +247,9 @@ namespace SaveGameCustomizer.Patches
                 ChangeSlotColourTriggers(saveBackground, deleteButtonEventTrigger, loadButtonEventTrigger, editButtonTriggerComponent, lightColour, darkerColour);
                 leftColourButtonImage.color = Color.white;
                 rightColourButtonImage.color = Color.white;
-                UpdateDisplayColoursOnClick(config, inputFieldComponent);
-                ChangeEventTriggerForColourButton(leftColourButton.GetComponent<EventTrigger>(), config, -1, inputFieldComponent);
-                ChangeEventTriggerForColourButton(rightColourButton.GetComponent<EventTrigger>(), config, 1, inputFieldComponent);
+                MainPatcher.UpdateDisplayColoursOnClick(colourComponent, inputFieldComponent);
+                ChangeEventTriggerForColourButton(leftColourButton.GetComponent<EventTrigger>(), colourComponent, -1, inputFieldComponent);
+                ChangeEventTriggerForColourButton(rightColourButton.GetComponent<EventTrigger>(), colourComponent, 1, inputFieldComponent);
             }
 
             // Change the texture sprite to be the highlighted one, this is so we don't get dark / weird colours
@@ -264,37 +265,20 @@ namespace SaveGameCustomizer.Patches
             ChangeEvenTriggers(editButton, lightColour, darkColour, true);
         }
 
-        private static void UpdateDisplayColoursOnClick(SaveGameConfig config, InputField inputFieldComponent)
-        {
-            inputFieldComponent.image.color = SaveGameConfig.ProperColours[config.ColourIndex];
-        }
-
-        private static void ChangeEventTriggerForColourButton(EventTrigger eventTrigger, SaveGameConfig config, int addAmount, InputField inputFieldComponent)
+        private static void ChangeEventTriggerForColourButton(EventTrigger eventTrigger, SelectedColours coloursComponent, int addAmount, InputField inputFieldComponent)
         {
             eventTrigger.gameObject.GetComponent<Button>().transition = Selectable.Transition.None;
             eventTrigger.triggers.Clear();
-            eventTrigger.triggers.Add(CreateEntry(config, addAmount, inputFieldComponent));
+            eventTrigger.triggers.Add(CreateEntry(coloursComponent, addAmount, inputFieldComponent));
         }
 
-        private static EventTrigger.Entry CreateEntry(SaveGameConfig config, int addAmount, InputField inputFieldComponent)
+        private static EventTrigger.Entry CreateEntry(SelectedColours coloursComponent, int addAmount, InputField inputFieldComponent)
         {
             EventTrigger.Entry entry = new EventTrigger.Entry();
             entry.eventID = EventTriggerType.PointerClick;
             entry.callback.AddListener(data => 
             {
-                if (config.ColourIndex + addAmount >= SaveGameConfig.AllColours.Length)
-                {
-                    config.ColourIndex = 0;
-                } 
-                else if (config.ColourIndex + addAmount < 0)
-                {
-                    config.ColourIndex = SaveGameConfig.AllColours.Length - 1;
-                }
-                else
-                {
-                    config.ColourIndex += addAmount;
-                }
-                UpdateDisplayColoursOnClick(config, inputFieldComponent);
+                MainPatcher.UpdateColourIndex(coloursComponent.ColourIndex, addAmount, coloursComponent, inputFieldComponent);
             });
             return entry;
         }

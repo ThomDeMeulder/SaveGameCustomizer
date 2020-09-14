@@ -26,6 +26,7 @@ namespace SaveGameCustomizer.Behaviours
             SelectedColours selectedColoursComponent = data.Object.GetComponent<SelectedColours>();
             selectedColoursComponent.SelectedColour = lightColour;
             selectedColoursComponent.DarkerColour = SaveGameConfig.AllColours[data.NewColourIndex].Item2;
+            selectedColoursComponent.ColourIndex = selectedColoursComponent.ColourIndex;
         }
     }
 }

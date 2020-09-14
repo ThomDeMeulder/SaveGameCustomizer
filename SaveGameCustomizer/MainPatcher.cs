@@ -2,6 +2,7 @@
 using QModManager.API;
 using QModManager.API.ModLoading;
 using SaveGameCustomizer.Behaviours;
+using SaveGameCustomizer.Config;
 using SaveGameCustomizer.Events;
 using System;
 using System.Collections;
@@ -83,6 +84,28 @@ namespace SaveGameCustomizer
             MainMenuRightSide.main.OpenGroup("SavedGames");
             CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { lb.load.GetComponent<CanvasGroup>(), 1f, lb.animTime, lb.alphaPower, true, null }));
             CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { editMenu.GetComponent<CanvasGroup>(), 0f, lb.animTime, lb.alphaPower, false, null }));
+        }
+
+        internal static void UpdateColourIndex(int currentIndex, int addAmount, SelectedColours coloursComponent, InputField inputFieldComponent)
+        {
+            if (currentIndex + addAmount >= SaveGameConfig.AllColours.Length)
+            {
+                coloursComponent.ColourIndex = 0;
+            }
+            else if (currentIndex + addAmount < 0)
+            {
+                coloursComponent.ColourIndex = SaveGameConfig.AllColours.Length - 1;
+            }
+            else
+            {
+                coloursComponent.ColourIndex += addAmount;
+            }
+            UpdateDisplayColoursOnClick(coloursComponent, inputFieldComponent);
+        }
+
+        internal static void UpdateDisplayColoursOnClick(SelectedColours coloursComponent, InputField inputFieldComponent)
+        {
+            inputFieldComponent.image.color = SaveGameConfig.ProperColours[coloursComponent.ColourIndex];
         }
     }
 }
