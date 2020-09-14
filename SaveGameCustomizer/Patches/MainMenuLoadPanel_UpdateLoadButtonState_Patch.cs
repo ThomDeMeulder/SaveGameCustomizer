@@ -112,10 +112,8 @@ namespace SaveGameCustomizer.Patches
 
                 if (lb.gameObject.GetComponent<SelectedColours>() == null)
                 {
-#if SUBNAUTICA
                     // Add the live checker for controller support
                     lb.gameObject.AddComponent<MainMenuEditButtonChanger>();
-#endif
 
                     // Add the SelectedColours component to the save for controller support
                     SelectedColours colourComponent = lb.gameObject.AddComponent<SelectedColours>();
@@ -240,8 +238,10 @@ namespace SaveGameCustomizer.Patches
                     inputFieldComponent.characterLimit = 15;
 #elif BELOWZERO
                     TMP_InputField tmpInputField = inputMenuGameObject.AddComponent<TMP_InputField>();
+                    tmpInputField.textComponent = inputMenuGameObject.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
                     tmpInputField.text = config.Name;
-                    //tmpInputField.textComponent = inputMenuGameObject.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
+                    inputMenuGameObject.SetActive(false);
+                    inputMenuGameObject.SetActive(true);
                     tmpInputField.characterLimit = 15;
 #endif
 
