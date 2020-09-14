@@ -1,5 +1,7 @@
-﻿using HarmonyLib;
-using SaveGameCustomizer.Config;
+﻿using SaveGameCustomizer.Config;
+#if BELOWZERO
+using TMPro;
+#endif
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,7 +12,11 @@ namespace SaveGameCustomizer.Behaviours
         private SelectedColours coloursComponent;
         private GameObject saveButton;
         private GameObject inputMenu;
+#if SUBNAUTICA
         private InputField inputField;
+#elif BELOWZERO
+        private TMP_InputField inputField;
+#endif
         private GameObject selectedItem;
         private LegendButtonData[] defaultLegendButtonItems;
         private Image saveButtonImage;
@@ -19,13 +25,20 @@ namespace SaveGameCustomizer.Behaviours
         {
             // Get references
             coloursComponent = transform.parent.GetComponent<SelectedColours>();
+#if SUBNAUTICA
             defaultLegendButtonItems = transform.parent.GetComponent<mGUI_Change_Legend_On_Select>().legendButtonConfiguration;
+#endif
             saveButton = transform.Find("EditMenuSaveButton").gameObject;
             inputMenu = transform.Find("EditMenuInputMenu").gameObject;
+#if SUBNAUTICA
             inputField = inputMenu.GetComponent<InputField>();
+#elif BELOWZERO
+            inputField = inputMenu.GetComponent<TMP_InputField>();
+#endif
             saveButtonImage = saveButton.GetComponent<Image>();
             saveButton.GetComponent<CanvasRenderer>().SetColor(Color.white);
 
+#if SUBNAUTICA
             // Add legend for controller
             mGUI_Change_Legend_On_Select saveButtonLegend = saveButton.AddComponent<mGUI_Change_Legend_On_Select>();
             saveButtonLegend.legendButtonConfiguration = new LegendButtonData[] { defaultLegendButtonItems[0], defaultLegendButtonItems[1] };
@@ -45,6 +58,7 @@ namespace SaveGameCustomizer.Behaviours
                     buttonDescription = SaveGameConfig.ColourButtonControllerText.Item1
                 }
             };
+#endif
         }
 
         public void DeselectItem()
@@ -122,7 +136,7 @@ namespace SaveGameCustomizer.Behaviours
             if (ReferenceEquals(selectedItem, saveButton))
             {
                 saveButtonImage.color = Color.yellow;
-            }
+            } 
 
             selectedItem.GetComponent<Selectable>().Select();
 

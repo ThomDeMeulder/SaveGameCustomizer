@@ -1,4 +1,9 @@
 ﻿using HarmonyLib;
+#if BELOWZERO
+using Newtonsoft.Json;
+#elif SUBNAUTICA
+using Oculus.Newtonsoft.Json;
+#endif
 using QModManager.API;
 using SaveGameCustomizer.Behaviours;
 using SaveGameCustomizer.Config;
@@ -7,6 +12,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using System.Reflection.Emit;
+#if BELOWZERO
+using TMPro;
+#endif
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -22,11 +30,19 @@ namespace SaveGameCustomizer.Patches
         {
             foreach (CodeInstruction instruction in instructions)
             {
+#if BELOWZERO
+                if (instruction.opcode.Equals(OpCodes.Ldstr) && instruction.operand.Equals("<color=#ff0000ff>"))
+                {
+                    yield return new CodeInstruction(OpCodes.Ldstr, "<color=#ffffffff>");
+                    continue;
+                }
+#elif SUBNAUTICA
                 if (instruction.opcode.Equals(OpCodes.Ldstr) && instruction.operand.Equals("<color=#ff0000ff>Changeset {0} is newer than the current version!</color>"))
                 {
                     yield return new CodeInstruction(OpCodes.Ldstr, "<color=#ffffffff>CS {0} is a save from the future!</color>");
                     continue;
                 }
+#endif
                 yield return instruction;
             }
         }
@@ -67,10 +83,19 @@ namespace SaveGameCustomizer.Patches
                     return;
                 }
 
+#if BELOWZERO
+                if (gameInfo.storyVersion != 2)
+                {
+                    // Incompatible story save game for Below Zero, I can also respect this.
+                    return;
+                }
+#endif
+
                 // Get triggers on buttons
                 EventTrigger deleteButtonEventTrigger = deleteButtonTransform.GetComponent<EventTrigger>();
                 EventTrigger loadButtonEventTrigger = lb.transform.Find("Load/LoadButton").GetComponent<EventTrigger>();
 
+#if SUBNAUTICA
                 // Fix the button showing up for controller
                 mGUI_Change_Legend_On_Select controllerSelectComponent = lb.GetComponent<mGUI_Change_Legend_On_Select>();
                 controllerSelectComponent.legendButtonConfiguration = controllerSelectComponent.legendButtonConfiguration.AddToArray(new LegendButtonData
@@ -79,6 +104,7 @@ namespace SaveGameCustomizer.Patches
                     button = GameInput.Button.Jump,
                     buttonDescription = SaveGameConfig.EditButtonControllerText.Item1
                 });
+#endif
 
                 // Get the colours
                 Color lightColour = SaveGameConfig.AllColours[config.ColourIndex].Item1;
@@ -86,8 +112,10 @@ namespace SaveGameCustomizer.Patches
 
                 if (lb.gameObject.GetComponent<SelectedColours>() == null)
                 {
+#if SUBNAUTICA
                     // Add the live checker for controller support
                     lb.gameObject.AddComponent<MainMenuEditButtonChanger>();
+#endif
 
                     // Add the SelectedColours component to the save for controller support
                     SelectedColours colourComponent = lb.gameObject.AddComponent<SelectedColours>();
@@ -145,9 +173,15 @@ namespace SaveGameCustomizer.Patches
                     // Edit the save button text
                     GameObject saveButtonGameObjectText = saveButtonGameObject.transform.GetChild(0).gameObject;
                     saveButtonGameObjectText.name = "EditMenuSaveButtonText";
+#if BELOWZERO
+                    TextMeshProUGUI saveButtonText = saveButtonGameObjectText.GetComponent<TextMeshProUGUI>();
+                    saveButtonText.text = "Save";
+                    saveButtonText.color = Color.white;
+#elif SUBNAUTICA
                     Text saveButtonText = saveButtonGameObjectText.GetComponent<Text>();
                     saveButtonText.text = "Save";
                     saveButtonText.color = Color.white;
+#endif
 
                     // Add the colour buttons
                     GameObject leftColourButton = UnityEngine.Object.Instantiate(saveButtonGameObject, editMenu.transform);
@@ -197,12 +231,19 @@ namespace SaveGameCustomizer.Patches
                     // Change the background image color
                     inputMenuGameObject.GetComponent<Image>().color = Color.white;
 
+#if SUBNAUTICA
                     // Add input field component
                     InputField inputFieldComponent = inputMenuGameObject.AddComponent<InputField>();
                     inputFieldComponent.text = config.Name;
                     inputFieldComponent.textComponent = inputMenuGameObject.transform.GetChild(0).GetComponent<Text>();
                     inputFieldComponent.textComponent.color = Color.white;
                     inputFieldComponent.characterLimit = 15;
+#elif BELOWZERO
+                    TMP_InputField tmpInputField = inputMenuGameObject.AddComponent<TMP_InputField>();
+                    tmpInputField.text = config.Name;
+                    //tmpInputField.textComponent = inputMenuGameObject.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
+                    tmpInputField.characterLimit = 15;
+#endif
 
                     // Set the offset for the rect transform
                     RectTransform inputMenuRectTransform = inputMenuGameObject.GetComponent<RectTransform>();
@@ -223,8 +264,11 @@ namespace SaveGameCustomizer.Patches
                         MainPatcher.ChangeToSavesMenu(editMenu, lb);
 
                         // Update all needed data
+#if SUBNAUTICA
                         ChangeSaveName(gameInfo, lb, inputFieldComponent.text);
-                        config.Name = inputFieldComponent.text;
+#elif BELOWZERO
+                        ChangeSaveName(gameInfo, lb, tmpInputField.text);
+#endif
                         ChangeSlotColourTriggers(saveBackground, deleteButtonEventTrigger, loadButtonEventTrigger, editButtonTriggerComponent, SaveGameConfig.AllColours[colourComponent.ColourIndex].Item1, SaveGameConfig.AllColours[colourComponent.ColourIndex].Item2);
 
                         // Notify where needed
@@ -234,7 +278,31 @@ namespace SaveGameCustomizer.Patches
                             Object = lb.gameObject
                         });
 
-                        // TODO Save to file.
+                        // Save to the needed file
+#if SUBNAUTICA
+                        config.Name = inputFieldComponent.text;
+#elif BELOWZERO
+                        config.Name = tmpInputField.text;
+#endif
+                        config.ColourIndex = colourComponent.ColourIndex;
+
+                        try
+                        {
+                            MainPatcher.Log($"Saving settings for slot: {lb.saveGame}");
+                            byte[] data = SaveGameConfig.SerializeConfig(config);
+                            PlatformUtils.main.GetUserStorage().SaveFilesAsync(lb.saveGame, new Dictionary<string, byte[]>
+                            {
+                                {
+                                    SaveGameConfig.CustomSaveGameFileName,
+                                    data
+                                }
+                            });
+                        }
+                        catch (JsonException serializeException)
+                        {
+                            MainPatcher.Log($"Exception while saving for slot: {lb.saveGame}");
+                            MainPatcher.Log(serializeException.Message);
+                        }
                     });
 
                     // Change all colours and change/add/remove triggers
@@ -242,16 +310,22 @@ namespace SaveGameCustomizer.Patches
                     entry.eventID = EventTriggerType.PointerClick;
                     entry.callback.AddListener((data) =>
                     {
-                        MainPatcher.ChangeToEditMenu(editMenu, lb, saveButton);
+                        MainPatcher.ChangeToEditMenu(editMenu, lb);
                     });
                     editButtonTriggerComponent.triggers.Add(entry);
 
                     ChangeSlotColourTriggers(saveBackground, deleteButtonEventTrigger, loadButtonEventTrigger, editButtonTriggerComponent, lightColour, darkerColour);
                     leftColourButtonImage.color = Color.white;
                     rightColourButtonImage.color = Color.white;
+#if SUBNAUTICA
                     MainPatcher.UpdateDisplayColoursOnClick(colourComponent, inputFieldComponent);
                     ChangeEventTriggerForColourButton(leftColourButton.GetComponent<EventTrigger>(), colourComponent, -1, inputFieldComponent);
                     ChangeEventTriggerForColourButton(rightColourButton.GetComponent<EventTrigger>(), colourComponent, 1, inputFieldComponent);
+#elif BELOWZERO
+                    MainPatcher.UpdateDisplayColoursOnClick(colourComponent, tmpInputField);
+                    ChangeEventTriggerForColourButton(leftColourButton.GetComponent<EventTrigger>(), colourComponent, -1, tmpInputField);
+                    ChangeEventTriggerForColourButton(rightColourButton.GetComponent<EventTrigger>(), colourComponent, 1, tmpInputField);
+#endif
                 }
 
                 // Change the texture sprite to be the highlighted one, this is so we don't get dark / weird colours
@@ -260,9 +334,16 @@ namespace SaveGameCustomizer.Patches
             }
             catch (Exception exception)
             {
-                QModServices.Main.AddCriticalMessage("Error while loading a save. Check the logs for more information!");
+                const string ErrorMessageText = "Error while loading a save. Check the logs for more information!";
+#if BELOWZERO
+                ErrorMessage.AddError(ErrorMessageText);
+#elif SUBNAUTICA
+                // Breaks in Below Zero, so we'll have to do it another way.
+                QModServices.Main.AddCriticalMessage(ErrorMessageText);
+#endif
                 MainPatcher.Log("EXCEPTION WHILE LOADING SAVE FILE!");
                 MainPatcher.Log(exception.Message);
+                MainPatcher.Log(exception.StackTrace);
             }
         }
 
@@ -274,14 +355,22 @@ namespace SaveGameCustomizer.Patches
             ChangeEvenTriggers(editButton, lightColour, darkColour, true);
         }
 
+#if SUBNAUTICA
         private static void ChangeEventTriggerForColourButton(EventTrigger eventTrigger, SelectedColours coloursComponent, int addAmount, InputField inputFieldComponent)
+#elif BELOWZERO
+        private static void ChangeEventTriggerForColourButton(EventTrigger eventTrigger, SelectedColours coloursComponent, int addAmount, TMP_InputField inputFieldComponent)
+#endif
         {
             eventTrigger.gameObject.GetComponent<Button>().transition = Selectable.Transition.None;
             eventTrigger.triggers.Clear();
             eventTrigger.triggers.Add(CreateEntry(coloursComponent, addAmount, inputFieldComponent));
         }
 
+#if SUBNAUTICA
         private static EventTrigger.Entry CreateEntry(SelectedColours coloursComponent, int addAmount, InputField inputFieldComponent)
+#elif BELOWZERO
+        private static EventTrigger.Entry CreateEntry(SelectedColours coloursComponent, int addAmount, TMP_InputField inputFieldComponent)
+#endif
         {
             EventTrigger.Entry entry = new EventTrigger.Entry();
             entry.eventID = EventTriggerType.PointerClick;
@@ -317,7 +406,12 @@ namespace SaveGameCustomizer.Patches
         private static void ChangeSaveName(SaveLoadManager.GameInfo gameInfo, MainMenuLoadButton lb, string newName)
         {
             DateTime time = new DateTime(gameInfo.dateTicks);
-            lb.load.FindChild("SaveGameTime").GetComponent<Text>().text = $"{newName} - {time.Day} {CultureInfo.GetCultureInfo("en-GB").DateTimeFormat.GetMonthName(time.Month)}";
+            string text = $"{newName} - {time.Day} {CultureInfo.GetCultureInfo("en-GB").DateTimeFormat.GetMonthName(time.Month)}";
+#if BELOWZERO
+            lb.saveGameTimeText.text = text;
+#elif SUBNAUTICA
+            lb.load.FindChild("SaveGameTime").GetComponent<Text>().text = text;
+#endif
         }
     }
 }

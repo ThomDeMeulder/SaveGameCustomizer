@@ -8,6 +8,9 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Reflection;
+#if BELOWZERO
+using TMPro;
+#endif
 using UnityEngine;
 using UnityEngine.UI;
 using UWE;
@@ -67,14 +70,14 @@ namespace SaveGameCustomizer
             selectedImageComponent.color = highlight ? component.DarkerColour : component.SelectedColour;
         }
 
-        internal static void ChangeToEditMenu(GameObject editMenu, MainMenuLoadButton lb, Button saveButton)
+        internal static void ChangeToEditMenu(GameObject editMenu, MainMenuLoadButton lb)
         {
             MethodInfo shiftAlphaMethod = AccessTools.Method(typeof(MainMenuLoadButton), "ShiftAlpha", new Type[] { typeof(CanvasGroup), typeof(float), typeof(float), typeof(float), typeof(bool), typeof(Selectable) });
 
             uGUI_MainMenu.main.OnRightSideOpened(editMenu);
             uGUI_LegendBar.ClearButtons(); // Removes the legend, controller support.
             CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { lb.load.GetComponent<CanvasGroup>(), 0f, lb.animTime, lb.alphaPower, false, null }));
-            CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { editMenu.GetComponent<CanvasGroup>(), 1f, lb.animTime, lb.alphaPower, true, saveButton }));
+            CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { editMenu.GetComponent<CanvasGroup>(), 1f, lb.animTime, lb.alphaPower, true, null }));
         }
 
         internal static void ChangeToSavesMenu(GameObject editMenu, MainMenuLoadButton lb)
@@ -86,7 +89,11 @@ namespace SaveGameCustomizer
             CoroutineHost.StartCoroutine((IEnumerator)shiftAlphaMethod.Invoke(lb, new object[] { editMenu.GetComponent<CanvasGroup>(), 0f, lb.animTime, lb.alphaPower, false, null }));
         }
 
+#if SUBNAUTICA
         internal static void UpdateColourIndex(int currentIndex, int addAmount, SelectedColours coloursComponent, InputField inputFieldComponent)
+#elif BELOWZERO
+        internal static void UpdateColourIndex(int currentIndex, int addAmount, SelectedColours coloursComponent, TMP_InputField inputFieldComponent)
+#endif
         {
             if (currentIndex + addAmount >= SaveGameConfig.AllColours.Length)
             {
@@ -103,7 +110,11 @@ namespace SaveGameCustomizer
             UpdateDisplayColoursOnClick(coloursComponent, inputFieldComponent);
         }
 
+#if SUBNAUTICA
         internal static void UpdateDisplayColoursOnClick(SelectedColours coloursComponent, InputField inputFieldComponent)
+#elif BELOWZERO
+        internal static void UpdateDisplayColoursOnClick(SelectedColours coloursComponent, TMP_InputField inputFieldComponent)
+#endif
         {
             inputFieldComponent.image.color = SaveGameConfig.ProperColours[coloursComponent.ColourIndex];
         }

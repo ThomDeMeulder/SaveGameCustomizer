@@ -1,4 +1,8 @@
-﻿using Oculus.Newtonsoft.Json;
+﻿#if BELOWZERO
+using Newtonsoft.Json;
+#else
+using Oculus.Newtonsoft.Json;
+#endif
 using System;
 using System.IO;
 using System.Text;
@@ -79,11 +83,15 @@ namespace SaveGameCustomizer.Config
                     ColourIndex = colourIndex
                 };
 
-                string json = JsonConvert.SerializeObject(config, Formatting.Indented);
-                byte[] data = Encoding.UTF8.GetBytes(json);
-
+                byte[] data = SerializeConfig(config);
                 stream.Write(data, 0, data.Length);
             }
+        }
+
+        internal static byte[] SerializeConfig(SaveGameConfig config)
+        {
+            string json = JsonConvert.SerializeObject(config, Formatting.Indented);
+            return Encoding.UTF8.GetBytes(json);
         }
 
         internal static bool GetConfigFromBytes(byte[] data, out SaveGameConfig config)

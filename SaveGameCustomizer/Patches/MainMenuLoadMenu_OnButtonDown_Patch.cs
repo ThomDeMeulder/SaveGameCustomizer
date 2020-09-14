@@ -14,7 +14,7 @@ namespace SaveGameCustomizer.Patches
                 if (___selectedItem != null && ___selectedItem.name != "NewGame")
                 {
                     // Change to edit menu
-                    MainPatcher.ChangeToEditMenu(___selectedItem.transform.Find("Edit").gameObject, ___selectedItem.GetComponent<MainMenuLoadButton>(), null);
+                    MainPatcher.ChangeToEditMenu(___selectedItem.transform.Find("Edit").gameObject, ___selectedItem.GetComponent<MainMenuLoadButton>());
 
                     // Return needed results
                     __result = true;
