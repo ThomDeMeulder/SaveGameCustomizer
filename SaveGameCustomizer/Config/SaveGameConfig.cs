@@ -36,17 +36,22 @@ namespace SaveGameCustomizer.Config
             "Cherry"
         };
 
-        // Light then dark.
         public static readonly Color[] AllColours =
         {
-            CreateColourFromRGB(66.0f, 143.0f, 56.0f), // Dark Green
-            CreateColourFromRGB(41.0f, 232.0f, 19.0f), // Light Green
-            CreateColourFromRGB(235.0f, 164.0f, 12.0f), // Orange
-            CreateColourFromRGB(224.0f, 7.0f, 170.0f), // Purple
-            CreateColourFromRGB(252.0f, 189.0f, 250.0f), // Pink
-            CreateColourFromRGB(0.0f, 34.0f, 255.0f), // Dark Blue
-            CreateColourFromRGB(214.0f, 0.0f, 0.0f), // Dark Red
-            CreateColourFromRGB(0.0f, 0.0f, 0.0f) // Black / gray
+            CreateColourFromRGB(18.0f, 224.0f, 25.0f), // Light Green
+            CreateColourFromRGB(15.0f, 189.0f, 21.0f), // Green
+            CreateColourFromRGB(11.0f, 133.0f, 15.0f), // Dark Green
+            CreateColourFromRGB(255.0f, 153.0f, 0.0f), // Orange
+            CreateColourFromRGB(194.0f, 116.0f, 0.0f), // Dark Orange / Brown
+            CreateColourFromRGB(242.0f, 109.0f, 242.0f), // Magenta / Pink (or something like that)
+            CreateColourFromRGB(235.0f, 23.0f, 235.0f), // Purple
+            CreateColourFromRGB(143.0f, 16.0f, 143.0f), // Dark Purple
+            CreateColourFromRGB(207.0f, 23.0f, 23.0f), // Red
+            CreateColourFromRGB(150.0f, 18.0f, 18.0f), // Dark Red
+            CreateColourFromRGB(11.0f, 109.0f, 214.0f), // Blue
+            CreateColourFromRGB(2.0f, 73.0f, 150.0f), // Dark Blue
+            CreateColourFromRGB(60.0f, 60.0f, 60.0f), // Gray
+            CreateColourFromRGB(0.0f, 0.0f, 0.0f), // Black
         };
 
         [JsonProperty("name")]
