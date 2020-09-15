@@ -122,7 +122,7 @@
     <Reference Include="UnityEngine.PhysicsModule" Condition="'$(Configuration)'=='BelowZero'">
       <HintPath>..\..\..\Steam\steamapps\common\SubnauticaZero\SubnauticaZero_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL"  Condition="'$(Configuration)'=='BelowZero'">
+    <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" Condition="'$(Configuration)'=='BelowZero'">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Steam\steamapps\common\SubnauticaZero\SubnauticaZero_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
@@ -151,7 +151,6 @@
     <Compile Include="Events\SlotChangedData.cs" />
     <Compile Include="MainPatcher.cs" />
     <Compile Include="Patches\Language_LoadLanguageFile_Patch.cs" />
-    <Compile Include="Patches\MainMenuLoadButton_onCursorEnter_Patch.cs" />
     <Compile Include="Patches\MainMenuLoadMenu_DeselectItem_Patch.cs" />
     <Compile Include="Patches\MainMenuLoadMenu_OnButtonDown_Patch.cs" />
     <Compile Include="Patches\MainMenuLoadMenu_SelectItem_Patch.cs" />
