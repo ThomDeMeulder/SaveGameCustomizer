@@ -62,19 +62,22 @@ namespace SaveGameCustomizer.Patches
                 if (!SaveGameCache.GetSaveGameConfigDataFromSlotName(lb.saveGame, out SaveGameConfig config))
                 {
                     // Something went wrong with loading our data. This should NOT have happened in any case!
-                    QModServices.Main.AddCriticalMessage("Something went wrong while loading your save data. Please report this to the developer with logs!");
+                    QModServices.Main.AddCriticalMessage("Something went wrong while loading your save data!");
                     return;
                 }
-
-                // Change the background colour
-                Image saveBackground = lb.load.GetComponent<Image>();
-                saveBackground.color = SaveGameConfig.AllColours[config.ColourIndex].Item1;
 
                 // Change the delete button position
                 Transform deleteButtonTransform = lb.load.FindChild("DeleteButton").transform;
                 MainPatcher.ChangeButtonPosition(deleteButtonTransform, 150, 18);
 
-                ChangeSaveName(gameInfo, lb, config.Name);
+                bool shouldChangeFontSize = gameInfo.IsValid();
+#if BELOWZERO
+                if (gameInfo.storyVersion != 2)
+                {
+                    shouldChangeFontSize = false;
+                }
+#endif
+                ChangeSaveName(gameInfo, lb, config.Name, shouldChangeFontSize);
 
                 if (!gameInfo.IsValid())
                 {
@@ -89,6 +92,27 @@ namespace SaveGameCustomizer.Patches
                     // Incompatible story save game for Below Zero, I can also respect this.
                     return;
                 }
+#endif
+
+                // Change the background colour
+                Image saveBackground = lb.load.GetComponent<Image>();
+                saveBackground.color = SaveGameConfig.AllColours[config.ColourIndex].Item1;
+
+                // Move the last played date to the play time text and change the scale a little
+                Vector3 NewTextScale = new Vector3(0.8f, 0.8f, 0.8f);
+
+                DateTime time = new DateTime(gameInfo.dateTicks);
+                string month = CultureInfo.GetCultureInfo("en-GB").DateTimeFormat.GetMonthName(time.Month);
+                string playTime = Utils.PrettifyTime(gameInfo.gameTime);
+#if BELOWZERO
+                lb.saveGameLengthText.text = $"{time.Day} {month} - {playTime}";
+                lb.saveGameLengthText.gameObject.transform.localScale = NewTextScale;
+                MainPatcher.ChangeButtonPosition(lb.saveGameLengthText.gameObject.transform, -63.09f, 8.0f);
+#elif SUBNAUTICA
+                GameObject saveGameTextGameObject = lb.load.FindChild("SaveGameLength");
+                MainPatcher.ChangeButtonPosition(saveGameTextGameObject.transform, -63.09f, 8.0f);
+                saveGameTextGameObject.GetComponent<Text>().text = $"{time.Day} {month} - {playTime}";
+                saveGameTextGameObject.transform.localScale = NewTextScale;
 #endif
 
                 // Get triggers on buttons
@@ -235,14 +259,15 @@ namespace SaveGameCustomizer.Patches
                     inputFieldComponent.text = config.Name;
                     inputFieldComponent.textComponent = inputMenuGameObject.transform.GetChild(0).GetComponent<Text>();
                     inputFieldComponent.textComponent.color = Color.white;
-                    inputFieldComponent.characterLimit = 15;
+                    inputFieldComponent.characterLimit = 21;
 #elif BELOWZERO
                     TMP_InputField tmpInputField = inputMenuGameObject.AddComponent<TMP_InputField>();
                     tmpInputField.textComponent = inputMenuGameObject.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
+                    tmpInputField.textComponent.fontSize = 10;
                     tmpInputField.text = config.Name;
                     inputMenuGameObject.SetActive(false);
                     inputMenuGameObject.SetActive(true);
-                    tmpInputField.characterLimit = 15;
+                    tmpInputField.characterLimit = 21;
 #endif
 
                     // Set the offset for the rect transform
@@ -265,9 +290,9 @@ namespace SaveGameCustomizer.Patches
 
                         // Update all needed data
 #if SUBNAUTICA
-                        ChangeSaveName(gameInfo, lb, inputFieldComponent.text);
+                        ChangeSaveName(gameInfo, lb, inputFieldComponent.text, true);
 #elif BELOWZERO
-                        ChangeSaveName(gameInfo, lb, tmpInputField.text);
+                        ChangeSaveName(gameInfo, lb, tmpInputField.text, true);
 #endif
                         ChangeSlotColourTriggers(saveBackground, deleteButtonEventTrigger, loadButtonEventTrigger, editButtonTriggerComponent, SaveGameConfig.AllColours[colourComponent.ColourIndex].Item1, SaveGameConfig.AllColours[colourComponent.ColourIndex].Item2);
 
@@ -403,14 +428,19 @@ namespace SaveGameCustomizer.Patches
             return entry;
         }
 
-        private static void ChangeSaveName(SaveLoadManager.GameInfo gameInfo, MainMenuLoadButton lb, string newName)
+        private static void ChangeSaveName(SaveLoadManager.GameInfo gameInfo, MainMenuLoadButton lb, string newName, bool shouldChangeFontSize)
         {
-            DateTime time = new DateTime(gameInfo.dateTicks);
-            string text = $"{newName} - {time.Day} {CultureInfo.GetCultureInfo("en-GB").DateTimeFormat.GetMonthName(time.Month)}";
 #if BELOWZERO
-            lb.saveGameTimeText.text = text;
+            lb.saveGameTimeText.text = newName;
+            if (shouldChangeFontSize)
+            {
+                lb.saveGameTimeText.transform.localScale = new Vector3(1.05f, 1.05f, 1.05f);
+                lb.saveGameTimeText.fontSize = 13;
+            }
 #elif SUBNAUTICA
-            lb.load.FindChild("SaveGameTime").GetComponent<Text>().text = text;
+            Text textComponent = lb.load.FindChild("SaveGameTime").GetComponent<Text>();
+            textComponent.text = newName;
+            if (shouldChangeFontSize) textComponent.fontSize = 14;
 #endif
         }
     }
