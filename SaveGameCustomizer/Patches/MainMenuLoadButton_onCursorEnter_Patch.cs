@@ -5,9 +5,9 @@ namespace SaveGameCustomizer.Patches
     [HarmonyPatch(typeof(MainMenuLoadButton), "onCursorEnter")]
     internal static class MainMenuLoadButton_onCursorEnter_Patch
     {
-        private static bool Prefix()
+        private static bool Prefix(MainMenuLoadButton __instance)
         {
-            return false;
+            return __instance.transform.Find("Load/LoadButton").gameObject.activeSelf;
         }
     }
 }

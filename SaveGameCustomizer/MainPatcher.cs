@@ -68,7 +68,7 @@ namespace SaveGameCustomizer
             }
 
             Image selectedImageComponent = ___selectedItem.transform.GetChild(0).GetComponent<Image>();
-            selectedImageComponent.color = highlight ? component.DarkerColour : component.SelectedColour;
+            selectedImageComponent.color = highlight ? Color.white : component.SelectedColour;
         }
 
         internal static void ChangeToEditMenu(GameObject editMenu, MainMenuLoadButton lb)
@@ -117,7 +117,7 @@ namespace SaveGameCustomizer
         internal static void UpdateDisplayColoursOnClick(SelectedColours coloursComponent, TMP_InputField inputFieldComponent)
 #endif
         {
-            inputFieldComponent.image.color = SaveGameConfig.AllColours[coloursComponent.ColourIndex].Item1;
+            inputFieldComponent.image.color = SaveGameConfig.AllColours[coloursComponent.ColourIndex];
         }
     }
 }

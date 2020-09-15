@@ -18,14 +18,13 @@ namespace SaveGameCustomizer.Behaviours
 
         private void MainPatcher_OnColourChanged(Events.SlotChangedData data)
         {
-            Color lightColour = SaveGameConfig.AllColours[data.NewColourIndex].Item1;
+            Color lightColour = SaveGameConfig.AllColours[data.NewColourIndex];
 
             Transform editTransform = data.Object.transform.Find("Load");
             editTransform.GetComponent<Image>().color = lightColour;
 
             SelectedColours selectedColoursComponent = data.Object.GetComponent<SelectedColours>();
             selectedColoursComponent.SelectedColour = lightColour;
-            selectedColoursComponent.DarkerColour = SaveGameConfig.AllColours[data.NewColourIndex].Item2;
             selectedColoursComponent.ColourIndex = selectedColoursComponent.ColourIndex;
         }
     }

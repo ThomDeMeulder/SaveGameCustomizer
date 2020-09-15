@@ -6,6 +6,5 @@ namespace SaveGameCustomizer.Behaviours
     {
         public int ColourIndex { get; set; }
         public Color SelectedColour { get; set; }
-        public Color DarkerColour { get; set; }
     }
 }

@@ -77,7 +77,13 @@ namespace SaveGameCustomizer.Patches
                     shouldChangeFontSize = false;
                 }
 #endif
-                ChangeSaveName(gameInfo, lb, config.Name, shouldChangeFontSize);
+
+                string saveName = config.Name;
+                if (!shouldChangeFontSize)
+                {
+                    saveName = $"<color=#ffffffff>{saveName}</color>";
+                }
+                ChangeSaveName(gameInfo, lb, saveName, shouldChangeFontSize);
 
                 if (!gameInfo.IsValid())
                 {
@@ -96,7 +102,7 @@ namespace SaveGameCustomizer.Patches
 
                 // Change the background colour
                 Image saveBackground = lb.load.GetComponent<Image>();
-                saveBackground.color = SaveGameConfig.AllColours[config.ColourIndex].Item1;
+                saveBackground.color = SaveGameConfig.AllColours[config.ColourIndex];
 
                 // Move the last played date to the play time text and change the scale a little
                 Vector3 NewTextScale = new Vector3(0.8f, 0.8f, 0.8f);
@@ -130,9 +136,10 @@ namespace SaveGameCustomizer.Patches
                 });
 #endif
 
-                // Get the colours
-                Color lightColour = SaveGameConfig.AllColours[config.ColourIndex].Item1;
-                Color darkerColour = SaveGameConfig.AllColours[config.ColourIndex].Item2;
+                MainMenuLoadMenu menu = lb.transform.parent.parent.parent.GetComponent<MainMenuLoadMenu>();
+
+                // Get the colour
+                Color lightColour = SaveGameConfig.AllColours[config.ColourIndex];
 
                 if (lb.gameObject.GetComponent<SelectedColours>() == null)
                 {
@@ -142,7 +149,6 @@ namespace SaveGameCustomizer.Patches
                     // Add the SelectedColours component to the save for controller support
                     SelectedColours colourComponent = lb.gameObject.AddComponent<SelectedColours>();
                     colourComponent.SelectedColour = lightColour;
-                    colourComponent.DarkerColour = darkerColour;
                     colourComponent.ColourIndex = config.ColourIndex;
 
                     // Add the edit button
@@ -294,7 +300,7 @@ namespace SaveGameCustomizer.Patches
 #elif BELOWZERO
                         ChangeSaveName(gameInfo, lb, tmpInputField.text, true);
 #endif
-                        ChangeSlotColourTriggers(saveBackground, deleteButtonEventTrigger, loadButtonEventTrigger, editButtonTriggerComponent, SaveGameConfig.AllColours[colourComponent.ColourIndex].Item1, SaveGameConfig.AllColours[colourComponent.ColourIndex].Item2);
+                        ChangeSlotColourTriggers(menu, saveBackground, deleteButtonEventTrigger, loadButtonEventTrigger, editButtonTriggerComponent, SaveGameConfig.AllColours[colourComponent.ColourIndex]);
 
                         // Notify where needed
                         MainPatcher.RaiseSlotDataChangedEvent(new Events.SlotChangedData
@@ -339,7 +345,7 @@ namespace SaveGameCustomizer.Patches
                     });
                     editButtonTriggerComponent.triggers.Add(entry);
 
-                    ChangeSlotColourTriggers(saveBackground, deleteButtonEventTrigger, loadButtonEventTrigger, editButtonTriggerComponent, lightColour, darkerColour);
+                    ChangeSlotColourTriggers(menu, saveBackground, deleteButtonEventTrigger, loadButtonEventTrigger, editButtonTriggerComponent, lightColour);
                     leftColourButtonImage.color = Color.white;
                     rightColourButtonImage.color = Color.white;
 #if SUBNAUTICA
@@ -353,8 +359,7 @@ namespace SaveGameCustomizer.Patches
 #endif
                 }
 
-                // Change the texture sprite to be the highlighted one, this is so we don't get dark / weird colours
-                MainMenuLoadMenu menu = lb.transform.parent.parent.parent.GetComponent<MainMenuLoadMenu>();
+                // Change the texture sprite to be the custom one so we don't get weird colour issues.
                 if (MainPatcher.Background == null)
                 {
                     Texture2D texture2D = DuplicateTexture(menu.selectedSprite.texture);
@@ -411,12 +416,12 @@ namespace SaveGameCustomizer.Patches
             return readableText;
         }
 
-        private static void ChangeSlotColourTriggers(Image slotBackGroundImage, EventTrigger deleteButton, EventTrigger loadButton, EventTrigger editButton, Color lightColour, Color darkColour)
+        private static void ChangeSlotColourTriggers(MainMenuLoadMenu menu, Image slotBackGroundImage, EventTrigger deleteButton, EventTrigger loadButton, EventTrigger editButton, Color lightColour)
         {
             slotBackGroundImage.color = lightColour;
-            ChangeEvenTriggers(loadButton, lightColour, darkColour);
-            ChangeEvenTriggers(deleteButton, lightColour, darkColour);
-            ChangeEvenTriggers(editButton, lightColour, darkColour, true);
+            ChangeEvenTriggers(menu, loadButton, lightColour);
+            ChangeEvenTriggers(menu, deleteButton, lightColour);
+            ChangeEvenTriggers(menu, editButton, lightColour, true);
         }
 
 #if SUBNAUTICA
@@ -445,25 +450,33 @@ namespace SaveGameCustomizer.Patches
             return entry;
         }
 
-        private static void ChangeEvenTriggers(EventTrigger trigger, Color lightColour, Color darkColour, bool skipClear = false)
+        private static void ChangeEvenTriggers(MainMenuLoadMenu menu, EventTrigger trigger, Color lightColour, bool skipClear = false)
         {
             if (!skipClear) trigger.triggers.Clear();
-            AddNewTriggers(trigger, lightColour, darkColour);
+            AddNewTriggers(menu, trigger, lightColour);
         }
 
-        private static void AddNewTriggers(EventTrigger eventTrigger, Color lightColour, Color darkColour)
+        private static void AddNewTriggers(MainMenuLoadMenu menu, EventTrigger eventTrigger, Color lightColour)
         {
             Image image = eventTrigger.gameObject.transform.parent.GetComponent<Image>();
 
-            eventTrigger.triggers.Add(CreateEntry(image, darkColour, EventTriggerType.PointerEnter));
-            eventTrigger.triggers.Add(CreateEntry(image, lightColour, EventTriggerType.PointerExit));
+            eventTrigger.triggers.Add(CreateEntry(menu, image, Color.white, EventTriggerType.PointerEnter));
+            eventTrigger.triggers.Add(CreateEntry(menu, image, lightColour, EventTriggerType.PointerExit));
         }
 
-        private static EventTrigger.Entry CreateEntry(Image image, Color newImageColour, EventTriggerType triggerType)
+        private static EventTrigger.Entry CreateEntry(MainMenuLoadMenu menu, Image image, Color newImageColour, EventTriggerType triggerType)
         {
             EventTrigger.Entry entry = new EventTrigger.Entry();
             entry.eventID = triggerType;
-            entry.callback.AddListener((data) => image.color = newImageColour);
+            entry.callback.AddListener(data => 
+            {
+                if (triggerType == EventTriggerType.PointerEnter)
+                    image.sprite = menu.selectedSprite;
+                else if (triggerType == EventTriggerType.PointerExit)
+                    image.sprite = MainPatcher.Background;
+
+                image.color = newImageColour;
+            });
             return entry;
         }
 
