@@ -355,7 +355,25 @@ namespace SaveGameCustomizer.Patches
 
                 // Change the texture sprite to be the highlighted one, this is so we don't get dark / weird colours
                 MainMenuLoadMenu menu = lb.transform.parent.parent.parent.GetComponent<MainMenuLoadMenu>();
-                saveBackground.sprite = menu.selectedSprite;
+                if (MainPatcher.Background == null)
+                {
+                    Texture2D texture2D = DuplicateTexture(menu.selectedSprite.texture);
+                    for (int x = 0; x < texture2D.width; x++)
+                    {
+                        for (int y = 0; y < texture2D.height; y++)
+                        {
+                            if (Mathf.Abs(texture2D.GetPixel(x, y).a) <= 0.001f) continue;
+                            texture2D.SetPixel(x, y, Color.white);
+                        }
+                    }
+
+                    texture2D.anisoLevel = 9;
+                    texture2D.Apply();
+                    MainPatcher.Background = Sprite.Create(texture2D, menu.selectedSprite.rect, menu.selectedSprite.pivot, menu.selectedSprite.pixelsPerUnit, 0, SpriteMeshType.FullRect, menu.selectedSprite.border);
+                    MainPatcher.Background.name = "SGC_RuntimeBackgroundSprite";
+                }
+
+                saveBackground.sprite = MainPatcher.Background;
             }
             catch (Exception exception)
             {
@@ -370,6 +388,27 @@ namespace SaveGameCustomizer.Patches
                 MainPatcher.Log(exception.Message);
                 MainPatcher.Log(exception.StackTrace);
             }
+        }
+
+        // https://stackoverflow.com/questions/44733841/how-to-make-texture2d-readable-via-script
+        private static Texture2D DuplicateTexture(Texture2D source)
+        {
+            RenderTexture renderTex = RenderTexture.GetTemporary(
+                        source.width,
+                        source.height,
+                        0,
+                        RenderTextureFormat.Default,
+                        RenderTextureReadWrite.Linear);
+
+            Graphics.Blit(source, renderTex);
+            RenderTexture previous = RenderTexture.active;
+            RenderTexture.active = renderTex;
+            Texture2D readableText = new Texture2D(source.width, source.height);
+            readableText.ReadPixels(new Rect(0, 0, renderTex.width, renderTex.height), 0, 0);
+            readableText.Apply();
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(renderTex);
+            return readableText;
         }
 
         private static void ChangeSlotColourTriggers(Image slotBackGroundImage, EventTrigger deleteButton, EventTrigger loadButton, EventTrigger editButton, Color lightColour, Color darkColour)

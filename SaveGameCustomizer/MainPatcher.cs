@@ -22,6 +22,7 @@ namespace SaveGameCustomizer
     {
         internal static Sprite SettingIcon { get; private set; }
         internal static Sprite ArrowIcon { get; private set; }
+        internal static Sprite Background { get; set; }
 
         internal static event Action<SlotChangedData> OnSlotDataChanged;
 
@@ -116,7 +117,7 @@ namespace SaveGameCustomizer
         internal static void UpdateDisplayColoursOnClick(SelectedColours coloursComponent, TMP_InputField inputFieldComponent)
 #endif
         {
-            inputFieldComponent.image.color = SaveGameConfig.ProperColours[coloursComponent.ColourIndex];
+            inputFieldComponent.image.color = SaveGameConfig.AllColours[coloursComponent.ColourIndex].Item1;
         }
     }
 }

@@ -19,14 +19,14 @@ namespace SaveGameCustomizer.Patches
             MainPatcher.HandleChangeColour(___selectedItem, false);
         }
 
-        private static void Postfix(MainMenuLoadMenu __instance, GameObject __state)
+        private static void Postfix(GameObject __state)
         {
             if (__state == null || __state.GetComponent<SelectedColours>() == null)
             {
                 return;
             }
 
-            __state.transform.GetChild(0).GetComponent<Image>().sprite = __instance.selectedSprite;
+            __state.transform.GetChild(0).GetComponent<Image>().sprite = MainPatcher.Background;
         }
     }
 }

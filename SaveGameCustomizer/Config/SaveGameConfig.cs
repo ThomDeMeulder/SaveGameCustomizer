@@ -49,19 +49,6 @@ namespace SaveGameCustomizer.Config
             CreateColoursFromRGB(0.0f, 0.0f, 0.0f, 40.0f, 40.0f, 40.0f) // Black / gray
         };
 
-        // Used for white materials
-        public static readonly Color[] ProperColours =
-        {
-            CreateColourFromRGB(64.0f, 128.0f, 11.0f),
-            CreateColourFromRGB(107.0f, 212.0f, 21.0f),
-            CreateColourFromRGB(232.0f, 142.0f, 32.0f),
-            CreateColourFromRGB(187.0f, 102.0f, 189.0f),
-            CreateColourFromRGB(232.0f, 176.0f, 232.0f),
-            CreateColourFromRGB(11.0f, 97.0f, 184.0f),
-            CreateColourFromRGB(212.0f, 6.0f, 6.0f),
-            CreateColourFromRGB(0.0f, 0.0f, 0.0f)
-        };
-
         [JsonProperty("name")]
         public string Name { get; set; }
 
